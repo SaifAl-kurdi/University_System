@@ -1,0 +1,3455 @@
+Index: src/main/java/Cart/service/CartService.java
+===================================================================
+diff --git a/src/main/java/Cart/service/CartService.java b/src/main/java/Cart/service/CartService.java
+deleted file mode 100644
+--- a/src/main/java/Cart/service/CartService.java	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
++++ /dev/null	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
+@@ -1,65 +0,0 @@
+-package Cart.service;
+-
+-import Cart.dto.CartDTO;
+-import Cart.model.CartModel;
+-import Cart.repository.CartRepository;
+-import Customer.model.CustomerModel;
+-import Product.model.ProductModel;
+-import javax.enterprise.context.ApplicationScoped;
+-import javax.inject.Inject;
+-import java.util.List;
+-import java.util.stream.Collectors;
+-
+-@ApplicationScoped
+-public class CartService {
+-
+-    @Inject
+-    CartRepository cartRepository;
+-
+-    public List<CartDTO> findAll() {
+-        List<CartModel> cartModel = cartRepository.allTheCarts();
+-        return cartModel.stream().map(CartDTO::new).collect(Collectors.toList());
+-    }
+-
+-    public CartDTO findCartById(int id) {
+-        CartModel cartModel = cartRepository.findCartById(id);
+-        return new CartDTO(cartModel);
+-    }
+-
+-    public List<Object[]> findCartByCustomerId(int customerId) {
+-        return cartRepository.findCartByCustomerId(customerId);
+-    }
+-
+-    public CartDTO AddProductToCart(int quantity, int customerId, int productId) {
+-        CartModel cartModel = cartRepository.AddProductToCart(quantity, customerId, productId);
+-        return new CartDTO(cartModel);
+-    }
+-
+-    public CartDTO deleteCart(int id) {
+-        CartModel cartModel = cartRepository.removeCart(id);
+-        return new CartDTO(cartModel);
+-    }
+-
+-    public CartDTO deleteProductFromCart(int customerId, int productId) {
+-        CartModel cartModel = cartRepository.removeProductFromCart(customerId, productId);
+-        return new CartDTO(cartModel);
+-    }
+-
+-    public CartDTO updateCart(int id, int quantity, int customerId, int productId) {
+-        CartModel cartModel = cartRepository.findCartById(id);
+-
+-        if (quantity != 0) cartModel.setQuantity(quantity);
+-
+-        if (customerId != 0) {
+-            CustomerModel customerModel = cartRepository.getCustomerRefById(customerId);
+-            cartModel.setCustomerModel(customerModel);
+-        }
+-        if (productId != 0) {
+-            ProductModel productModel = cartRepository.getProductRefById(productId);
+-            cartModel.setProductModel(productModel);
+-        }
+-        CartModel updatedCartModel = cartRepository.updateCart(cartModel);
+-
+-        return new CartDTO(updatedCartModel);
+-    }
+-}
+Index: src/main/java/importxmlfile/service/ImportXMLService.java
+===================================================================
+diff --git a/src/main/java/importxmlfile/service/ImportXMLService.java b/src/main/java/importxmlfile/service/ImportXMLService.java
+deleted file mode 100644
+--- a/src/main/java/importxmlfile/service/ImportXMLService.java	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
++++ /dev/null	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
+@@ -1,116 +0,0 @@
+-package importxmlfile.service;
+-
+-import Category.model.CategoryModel;
+-import Customer.model.CustomerModel;
+-import Product.model.ProductModel;
+-import importxmlfile.dto.categorydto.CategoriesDTO;
+-import importxmlfile.dto.categorydto.CategoryDTO;
+-import importxmlfile.dto.customerdto.CustomerDTO;
+-import importxmlfile.dto.customerdto.CustomersDTO;
+-import importxmlfile.dto.productdto.ProductDTO;
+-import importxmlfile.dto.productdto.ProductsDTO;
+-import importxmlfile.repository.ImportXMLRepository;
+-import importxmlfile.template.TemplateDesignPattern;
+-import javax.enterprise.context.ApplicationScoped;
+-import javax.inject.Inject;
+-import javax.xml.bind.JAXBContext;
+-import javax.xml.bind.Unmarshaller;
+-import java.io.ByteArrayInputStream;
+-import java.util.ArrayList;
+-import java.util.List;
+-
+-@ApplicationScoped
+-public class ImportXMLService extends TemplateDesignPattern {
+-
+-    @Inject
+-    ImportXMLRepository importXMLRepository;
+-
+-    @Override
+-    public Object init(byte[] file, String field) throws Exception {
+-        if (field.equalsIgnoreCase("Customers") || field.equalsIgnoreCase("Customer")) {
+-            ByteArrayInputStream inputStream = new ByteArrayInputStream(file);
+-            JAXBContext jaxbContext = JAXBContext.newInstance(CustomersDTO.class);
+-            Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
+-            Object unmarshalled = unmarshaller.unmarshal(inputStream);
+-            return (CustomersDTO) unmarshalled;
+-        } else if (field.equalsIgnoreCase("Categories") || field.equalsIgnoreCase("Category")) {
+-            ByteArrayInputStream inputStream = new ByteArrayInputStream(file);
+-            JAXBContext jaxbContext = JAXBContext.newInstance(CategoriesDTO.class);
+-            Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
+-            Object unmarshalled = unmarshaller.unmarshal(inputStream);
+-            return (CategoriesDTO) unmarshalled;
+-        } else if (field.equalsIgnoreCase("Products") || field.equalsIgnoreCase("Product")) {
+-            ByteArrayInputStream inputStream = new ByteArrayInputStream(file);
+-            JAXBContext jaxbContext = JAXBContext.newInstance(ProductsDTO.class);
+-            Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
+-            return (ProductsDTO) unmarshaller.unmarshal(inputStream);
+-        }
+-        return null;
+-    }
+-
+-    @Override
+-    public void importXML(Object object) throws Exception {
+-        if (object instanceof CustomersDTO) {
+-            List<CustomerModel> customerModels = getCustomerModels((CustomersDTO) object);
+-            importXMLRepository.importXMLForCustomers(customerModels);
+-        } else if (object instanceof CategoriesDTO) {
+-            List<CategoryModel> categoryModel = getCategoryModels((CategoriesDTO) object);
+-            importXMLRepository.importXMLForCategories(categoryModel);
+-        } else if (object instanceof ProductsDTO) {
+-            List<ProductModel> productModels = getProductModels((ProductsDTO) object);
+-            importXMLRepository.importXMLForProducts(productModels);
+-        }
+-    }
+-
+-    private static List<CustomerModel> getCustomerModels(CustomersDTO object) {
+-        List<CustomerModel> customerModels = new ArrayList<CustomerModel>();
+-        for (CustomerDTO customerDTO : object.getCustomer()) {
+-            CustomerModel customerModel = new CustomerModel();
+-            customerModel.setFirstName(customerDTO.getFirstNameDTO());
+-            customerModel.setLastName(customerDTO.getLastNameDTO());
+-            customerModel.setEmail(customerDTO.getEmailDTO());
+-            customerModel.setAddress(customerDTO.getAddressDTO());
+-            customerModel.setPhoneNumber(String.valueOf(customerDTO.getPhoneNumberDTO()));
+-            customerModels.add(customerModel);
+-        }
+-        return customerModels;
+-    }
+-
+-    private static List<CategoryModel> getCategoryModels(CategoriesDTO object) {
+-        List<CategoryModel> categoryModel = new ArrayList<CategoryModel>();
+-        for (CategoryDTO categoryDTO : object.getCategoryDTOList()) {
+-            CategoryModel categoryModel1 = new CategoryModel();
+-            categoryModel1.setName(categoryDTO.getName());
+-            categoryModel.add(categoryModel1);
+-        }
+-        return categoryModel;
+-    }
+-
+-    private static List<ProductModel> getProductModels(ProductsDTO object) {
+-        List<ProductModel> productModel = new ArrayList<ProductModel>();
+-        for (ProductDTO productDTO : object.getProductDTO()) {
+-            ProductModel productModels = new ProductModel();
+-            productModels.setName(productDTO.getNamed());
+-            productModels.setSKU(productDTO.getSKUU());
+-            productModels.setDescription(productDTO.getDescriptionn());
+-            productModels.setPrice(productDTO.getPricee());
+-            productModels.setStock(productDTO.getStockk());
+-            CategoryModel category = new CategoryModel();
+-            category.setId(productDTO.getCategoryIdd());
+-            productModels.setCategory(category);
+-            productModel.add(productModels);
+-        }
+-        return productModel;
+-    }
+-
+-    /*@Override
+-    public List<Object> saveToDatabase(List<Object> objects) throws Exception {
+-        if (objects instanceof CustomersDTO) {
+-            importXMLRepository.importXMLForCustomers(objects);
+-
+-        }
+-    }*/
+-}
+-
+-
+-
+Index: src/main/java/Customer/dto/CustomerDTO.java
+===================================================================
+diff --git a/src/main/java/Customer/dto/CustomerDTO.java b/src/main/java/Customer/dto/CustomerDTO.java
+deleted file mode 100644
+--- a/src/main/java/Customer/dto/CustomerDTO.java	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
++++ /dev/null	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
+@@ -1,27 +0,0 @@
+-package Customer.dto;
+-
+-import Customer.model.CustomerModel;
+-import lombok.Getter;
+-import lombok.NoArgsConstructor;
+-import lombok.Setter;
+-
+-@NoArgsConstructor
+-@Getter @Setter
+-public class CustomerDTO {
+-
+-    private int id;
+-    private String firstName;
+-    private String lastName;
+-    private String email;
+-    private String address;
+-    private String phoneNumber;
+-
+-    public CustomerDTO(CustomerModel customerModel) {
+-        this.id = customerModel.getId();
+-        this.firstName = customerModel.getFirstName();
+-        this.lastName = customerModel.getLastName();
+-        this.email = customerModel.getEmail();
+-        this.address = customerModel.getAddress();
+-        this.phoneNumber = customerModel.getPhoneNumber();
+-    }
+-}
+Index: src/main/java/OrderDetails/model/OrderDetailsModel.java
+===================================================================
+diff --git a/src/main/java/OrderDetails/model/OrderDetailsModel.java b/src/main/java/OrderDetails/model/OrderDetailsModel.java
+deleted file mode 100644
+--- a/src/main/java/OrderDetails/model/OrderDetailsModel.java	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
++++ /dev/null	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
+@@ -1,25 +0,0 @@
+-package OrderDetails.model;
+-
+-import Customer.model.CustomerModel;
+-import lombok.Getter;
+-import lombok.NoArgsConstructor;
+-import lombok.Setter;
+-import javax.persistence.*;
+-
+-@Entity
+-@Table(name = "OrderDetails")
+-@NoArgsConstructor
+-@Getter @Setter
+-public class OrderDetailsModel {
+-
+-    @Id
+-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+-    private int id;
+-
+-    @Column(name = "total", nullable = false)
+-    private double totalPrice;
+-
+-    @ManyToOne
+-    @JoinColumn(name = "customerId")
+-    private CustomerModel customer;
+-}
+Index: src/main/java/Category/service/CategoryService.java
+===================================================================
+diff --git a/src/main/java/Category/service/CategoryService.java b/src/main/java/Category/service/CategoryService.java
+deleted file mode 100644
+--- a/src/main/java/Category/service/CategoryService.java	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
++++ /dev/null	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
+@@ -1,47 +0,0 @@
+-package Category.service;
+-
+-import Category.dto.CategoryDTO;
+-import Category.model.CategoryModel;
+-import Category.repository.CategoryRepository;
+-import javax.enterprise.context.ApplicationScoped;
+-import javax.inject.Inject;
+-import java.util.List;
+-import java.util.stream.Collectors;
+-
+-@ApplicationScoped
+-public class CategoryService {
+-
+-    @Inject
+-    CategoryRepository categoryRepository;
+-
+-    public List<CategoryDTO> getAllCategory() {
+-        List<CategoryModel> categoryModel = categoryRepository.getAllCategory();
+-        return categoryModel.stream().map(CategoryDTO::new).collect(Collectors.toList());
+-    }
+-
+-    public CategoryDTO getCategoryById(int id) {
+-        CategoryModel categoryModel = categoryRepository.getCategoryById(id);
+-        return new CategoryDTO(categoryModel);
+-    }
+-
+-    public CategoryDTO getCategoryByName(String name) {
+-        CategoryModel categoryModel = categoryRepository.getCategoryByName(name);
+-        return new CategoryDTO(categoryModel);
+-    }
+-
+-    public CategoryDTO createCategory(String name) {
+-        CategoryModel categoryModel = categoryRepository.createCategory(name);
+-        return new CategoryDTO(categoryModel);
+-    }
+-
+-    public CategoryDTO deleteCategoryById(int id) {
+-        CategoryModel categoryModel = categoryRepository.deleteCategoryById(id);
+-        return new CategoryDTO(categoryModel);
+-    }
+-
+-    public CategoryDTO updateCategoryById(int id, String name) {
+-        CategoryModel categoryModel = categoryRepository.updateCategoryById(id, name);
+-        return new CategoryDTO(categoryModel);
+-    }
+-
+-}
+Index: src/main/java/Wishlist/dto/WishlistDTO.java
+===================================================================
+diff --git a/src/main/java/Wishlist/dto/WishlistDTO.java b/src/main/java/Wishlist/dto/WishlistDTO.java
+deleted file mode 100644
+--- a/src/main/java/Wishlist/dto/WishlistDTO.java	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
++++ /dev/null	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
+@@ -1,29 +0,0 @@
+-package Wishlist.dto;
+-
+-import Customer.dto.CustomerDTO;
+-import Product.dto.ProductDTO;
+-import Wishlist.model.WishlistModel;
+-import lombok.Getter;
+-import lombok.NoArgsConstructor;
+-import lombok.Setter;
+-
+-@NoArgsConstructor
+-@Getter @Setter
+-public class WishlistDTO {
+-
+-    private int id;
+-    private ProductDTO product;
+-    private CustomerDTO customer;
+-
+-    public WishlistDTO(WishlistModel wishlistModel) {
+-        this.id = wishlistModel.getId();
+-
+-        if (wishlistModel.getCustomerID() != null) {
+-            this.customer = new CustomerDTO(wishlistModel.getCustomerID());
+-        }
+-
+-        if (wishlistModel.getProductID() != null) {
+-            this.product = new ProductDTO(wishlistModel.getProductID());
+-        }
+-    }
+-}
+Index: src/main/java/importxmlfile/dto/customerdto/CustomersDTO.java
+===================================================================
+diff --git a/src/main/java/importxmlfile/dto/customerdto/CustomersDTO.java b/src/main/java/importxmlfile/dto/customerdto/CustomersDTO.java
+deleted file mode 100644
+--- a/src/main/java/importxmlfile/dto/customerdto/CustomersDTO.java	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
++++ /dev/null	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
+@@ -1,22 +0,0 @@
+-package importxmlfile.dto.customerdto;
+-
+-import javax.xml.bind.annotation.XmlAccessType;
+-import javax.xml.bind.annotation.XmlAccessorType;
+-import javax.xml.bind.annotation.XmlElement;
+-import javax.xml.bind.annotation.XmlRootElement;
+-import java.util.List;
+-
+-@XmlRootElement(name = "Customers")
+-@XmlAccessorType(XmlAccessType.FIELD)
+-public class CustomersDTO {
+-
+-    @XmlElement(name = "Customer")
+-    private List<CustomerDTO> customer;
+-
+-    public List<CustomerDTO> getCustomer() {
+-        return customer;
+-    }
+-    public void setCustomer(List<CustomerDTO> customer) {
+-        this.customer = customer;
+-    }
+-}
+Index: src/main/java/Product/repository/ProductRepository.java
+===================================================================
+diff --git a/src/main/java/Product/repository/ProductRepository.java b/src/main/java/Product/repository/ProductRepository.java
+deleted file mode 100644
+--- a/src/main/java/Product/repository/ProductRepository.java	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
++++ /dev/null	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
+@@ -1,57 +0,0 @@
+-package Product.repository;
+-
+-import Category.model.CategoryModel;
+-import Product.model.ProductModel;
+-import javax.enterprise.context.ApplicationScoped;
+-import javax.inject.Inject;
+-import javax.persistence.EntityManager;
+-import java.util.List;
+-
+-@ApplicationScoped
+-public class ProductRepository {
+-    @Inject
+-    EntityManager entityManager;
+-
+-    public List<ProductModel> findAll() {
+-        return entityManager.createQuery("SELECT p FROM ProductModel p", ProductModel.class).getResultList();
+-    }
+-
+-    public ProductModel findById(int id) {
+-        return entityManager.find(ProductModel.class, id);
+-    }
+-
+-    public List<ProductModel> findByName(String name) {
+-        return entityManager.createQuery("SELECT p FROM ProductModel p WHERE p.name = :name", ProductModel.class).setParameter("name", name).getResultList();
+-    }
+-
+-    public List<ProductModel> findByCategoryId(int categoryId) {
+-        return entityManager.createQuery("SELECT p FROM ProductModel p WHERE p.category.id = :categoryId", ProductModel.class).setParameter("categoryId", categoryId).getResultList();
+-    }
+-
+-    public ProductModel addProduct(String name, String SKU,String description, float price, int stock, int categoryId) {
+-        ProductModel productModel = new ProductModel();
+-        productModel.setName(name);
+-        productModel.setSKU(SKU);
+-        productModel.setDescription(description);
+-        productModel.setPrice(price);
+-        productModel.setStock(stock);
+-        CategoryModel categoryModel =entityManager.getReference(CategoryModel.class, categoryId);
+-        productModel.setCategory(categoryModel);
+-        entityManager.persist(productModel);
+-        return productModel;
+-    }
+-
+-    public ProductModel deleteById(int id) {
+-        ProductModel productModel = findById(id);
+-        entityManager.remove(productModel);
+-        return productModel;
+-    }
+-
+-    public ProductModel updateById(ProductModel productModel) {
+-        entityManager.merge(productModel);
+-        return productModel;
+-    }
+-    public CategoryModel getCategoryReferenceById(int categoryId) {
+-        return entityManager.getReference(CategoryModel.class, categoryId);
+-    }
+-}
+Index: src/main/java/importxmlfile/controller/ImportXMLController.java
+===================================================================
+diff --git a/src/main/java/importxmlfile/controller/ImportXMLController.java b/src/main/java/importxmlfile/controller/ImportXMLController.java
+deleted file mode 100644
+--- a/src/main/java/importxmlfile/controller/ImportXMLController.java	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
++++ /dev/null	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
+@@ -1,36 +0,0 @@
+-package importxmlfile.controller;
+-
+-import importxmlfile.template.TemplateDesignPattern;
+-import javax.enterprise.context.ApplicationScoped;
+-import javax.inject.Inject;
+-import javax.transaction.Transactional;
+-import javax.ws.rs.*;
+-import javax.ws.rs.core.MediaType;
+-import javax.ws.rs.core.Response;
+-import java.nio.file.Paths;
+-import java.nio.file.Files;
+-
+-@ApplicationScoped
+-@Path("importxml")
+-public class ImportXMLController {
+-
+-    @Inject
+-    TemplateDesignPattern templateDesignPattern;
+-
+-    @POST
+-    @Path("parsing")
+-    @Transactional
+-    @Produces(MediaType.APPLICATION_JSON)
+-    @Consumes(MediaType.APPLICATION_JSON)
+-    public Object importXML(@QueryParam("filePath") String filePath,
+-                            @QueryParam("field") String field) throws Exception {
+-        if (!filePath.endsWith(".xml")) {
+-            return Response.status(Response.Status.BAD_REQUEST).entity("This file is not xml file.").build();
+-        }
+-
+-        java.nio.file.Path path = Paths.get(filePath);
+-        byte[] fileContent = Files.readAllBytes(path);
+-        templateDesignPattern.importxml(fileContent, field);
+-        return Response.status(Response.Status.OK).build();
+-    }
+-}
+Index: src/main/java/Customer/service/CRUDCustomerService.java
+===================================================================
+diff --git a/src/main/java/Customer/service/CRUDCustomerService.java b/src/main/java/Customer/service/CRUDCustomerService.java
+deleted file mode 100644
+--- a/src/main/java/Customer/service/CRUDCustomerService.java	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
++++ /dev/null	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
+@@ -1,70 +0,0 @@
+-package Customer.service;
+-
+-import Customer.dto.CustomerDTO;
+-import Customer.model.CustomerModel;
+-import Customer.repository.CRUDCustomerRepository;
+-import javax.enterprise.context.ApplicationScoped;
+-import javax.inject.Inject;
+-import java.util.List;
+-import java.util.stream.Collectors;
+-
+-@ApplicationScoped
+-public class CRUDCustomerService {
+-
+-    @Inject
+-    CRUDCustomerRepository crudCustomerRepository;
+-
+-    public List<CustomerDTO> findAll() {
+-        List<CustomerModel> list = crudCustomerRepository.findAll();
+-//        return list.stream().map(customer -> new CustomerDTO(customer)).collect(Collectors.toList());
+-        return list.stream().map(CustomerDTO::new).collect(Collectors.toList());
+-    }
+-
+-    public CustomerDTO findById(int id) {
+-        CustomerModel customer = crudCustomerRepository.findById(id);
+-        if (customer == null) {
+-            return null;
+-        }
+-        return new CustomerDTO(customer);
+-    }
+-
+-    public CustomerDTO findByEmail(String email) {
+-        CustomerModel customer = crudCustomerRepository.findByEmail(email);
+-        if (customer == null) {
+-            return null;
+-        }
+-        return new CustomerDTO(customer);
+-    }
+-
+-    public CustomerDTO addCustomer(String firstName, String lastName, String email, String address, String phoneNumber) {
+-        CustomerModel customer = crudCustomerRepository.addCustomer(firstName, lastName, email, address, phoneNumber);
+-        if (customer == null) {
+-            return null;
+-        }
+-        return new CustomerDTO(customer);
+-    }
+-
+-    public CustomerDTO updateCustomer(int id, String firstName, String lastName, String email, String address, String phoneNumber) {
+-        CustomerModel customer = crudCustomerRepository.findById(id);
+-        if (customer == null) {
+-            return null;
+-        }
+-
+-        if (firstName != null) customer.setFirstName(firstName);
+-        if (lastName != null) customer.setLastName(lastName);
+-        if (email != null) customer.setEmail(email);
+-        if (address != null)  customer.setAddress(address);
+-        if (phoneNumber != null) customer.setPhoneNumber(phoneNumber);
+-
+-        CustomerModel updatedCustomerModel = crudCustomerRepository.updateCustomer(customer);
+-        return new CustomerDTO(updatedCustomerModel);
+-    }
+-
+-    public CustomerDTO deleteCustomer(int id) {
+-        CustomerModel customer = crudCustomerRepository.deleteCustomer(id);
+-        if (customer == null) {
+-            return null;
+-        }
+-        return new CustomerDTO(customer);
+-    }
+-}
+Index: src/main/java/Cart/model/CartModel.java
+===================================================================
+diff --git a/src/main/java/Cart/model/CartModel.java b/src/main/java/Cart/model/CartModel.java
+deleted file mode 100644
+--- a/src/main/java/Cart/model/CartModel.java	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
++++ /dev/null	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
+@@ -1,26 +0,0 @@
+-package Cart.model;
+-
+-import Customer.model.CustomerModel;
+-import Product.model.ProductModel;
+-import lombok.Getter;
+-import lombok.Setter;
+-import javax.persistence.*;
+-
+-@Entity
+-@Table(name = "Cart")
+-@Getter @Setter
+-public class CartModel {
+-
+-    @Id
+-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+-    private int id;
+-    private int quantity;
+-
+-    @ManyToOne
+-    @JoinColumn(name = "productID")
+-    private ProductModel productModel;
+-
+-    @ManyToOne
+-    @JoinColumn(name = "customerID")
+-    private CustomerModel customerModel;
+-}
+Index: src/main/java/Cart/dto/CartDTO.java
+===================================================================
+diff --git a/src/main/java/Cart/dto/CartDTO.java b/src/main/java/Cart/dto/CartDTO.java
+deleted file mode 100644
+--- a/src/main/java/Cart/dto/CartDTO.java	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
++++ /dev/null	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
+@@ -1,32 +0,0 @@
+-package Cart.dto;
+-
+-import Cart.model.CartModel;
+-import Customer.dto.CustomerDTO;
+-import Customer.model.CustomerModel;
+-import Product.dto.ProductDTO;
+-import Product.model.ProductModel;
+-import lombok.Getter;
+-import lombok.NoArgsConstructor;
+-import lombok.Setter;
+-
+-@Getter @Setter
+-@NoArgsConstructor
+-public class CartDTO {
+-    private int id;
+-    private int quantity;
+-    private ProductDTO productModel;
+-    private CustomerDTO customerModel;
+-
+-    public CartDTO(CartModel cartModel) {
+-        this.id = cartModel.getId();
+-        this.quantity = cartModel.getQuantity();
+-
+-        if (cartModel.getCustomerModel() != null) {
+-            this.customerModel = new CustomerDTO(cartModel.getCustomerModel());
+-        }
+-        if (cartModel.getProductModel() != null) {
+-            this.productModel = new ProductDTO(cartModel.getProductModel());
+-        }
+-    }
+-}
+-
+Index: src/main/java/importxmlfile/dto/categorydto/CategoryDTO.java
+===================================================================
+diff --git a/src/main/java/importxmlfile/dto/categorydto/CategoryDTO.java b/src/main/java/importxmlfile/dto/categorydto/CategoryDTO.java
+deleted file mode 100644
+--- a/src/main/java/importxmlfile/dto/categorydto/CategoryDTO.java	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
++++ /dev/null	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
+@@ -1,22 +0,0 @@
+-package importxmlfile.dto.categorydto;
+-
+-import javax.xml.bind.annotation.XmlAccessType;
+-import javax.xml.bind.annotation.XmlAccessorType;
+-import javax.xml.bind.annotation.XmlElement;
+-import javax.xml.bind.annotation.XmlRootElement;
+-
+-@XmlRootElement(name = "Category")
+-@XmlAccessorType(XmlAccessType.FIELD)
+-public class CategoryDTO {
+-
+-    @XmlElement(name = "Name")
+-    public String name;
+-
+-    public String getName() {
+-        return name;
+-    }
+-    public void setName(String name) {
+-        this.name = name;
+-    }
+-
+-}
+Index: src/main/java/OrderItems/model/OrderItemsModel.java
+===================================================================
+diff --git a/src/main/java/OrderItems/model/OrderItemsModel.java b/src/main/java/OrderItems/model/OrderItemsModel.java
+deleted file mode 100644
+--- a/src/main/java/OrderItems/model/OrderItemsModel.java	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
++++ /dev/null	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
+@@ -1,28 +0,0 @@
+-package OrderItems.model;
+-
+-import OrderDetails.model.OrderDetailsModel;
+-import Product.model.ProductModel;
+-import lombok.Getter;
+-import lombok.NoArgsConstructor;
+-import lombok.Setter;
+-import javax.persistence.*;
+-
+-@Entity
+-@Table(name = "OrderItems")
+-@NoArgsConstructor
+-@Getter @Setter
+-public class OrderItemsModel {
+-
+-    @Id
+-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+-    private int id;
+-    private int quantity;
+-
+-    @ManyToOne
+-    @JoinColumn(name = "prodcutId", nullable = false)
+-    private ProductModel product;
+-
+-    @ManyToOne
+-    @JoinColumn(name = "orderDetailsId", nullable = false)
+-    private OrderDetailsModel orderDetails;
+-}
+Index: src/main/java/OrderDetails/service/OrderDetailsService.java
+===================================================================
+diff --git a/src/main/java/OrderDetails/service/OrderDetailsService.java b/src/main/java/OrderDetails/service/OrderDetailsService.java
+deleted file mode 100644
+--- a/src/main/java/OrderDetails/service/OrderDetailsService.java	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
++++ /dev/null	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
+@@ -1,47 +0,0 @@
+-package OrderDetails.service;
+-
+-import OrderDetails.dto.OrderDetailsDTO;
+-import OrderDetails.repository.OrderDetailsRepository;
+-import javax.enterprise.context.ApplicationScoped;
+-import javax.inject.Inject;
+-import java.util.List;
+-
+-@ApplicationScoped
+-public class OrderDetailsService {
+-
+-    @Inject
+-    OrderDetailsRepository orderDetailsRepository;
+-
+-    public List<Object[]> getOrderDetails() {
+-        return orderDetailsRepository.getOrderDetails();
+-    }
+-
+-    public OrderDetailsDTO getOrderDetailsByOrderId(int id) {
+-        return new OrderDetailsDTO(orderDetailsRepository.getOrderDetailsByOrderId(id));
+-    }
+-
+-    public OrderDetailsDTO getOrderDetailsByCustomerId(int customerId) {
+-        return new OrderDetailsDTO(orderDetailsRepository.getOrderDetailsByCustomerId(customerId));
+-    }
+-
+-    public OrderDetailsDTO createOrderDetails(int customerId) {
+-        return new OrderDetailsDTO(orderDetailsRepository.createOrderDetails(customerId));
+-    }
+-
+-    public OrderDetailsDTO deleteOrderDetails(int id) {
+-        return new OrderDetailsDTO(orderDetailsRepository.deleteOrderDetails(id));
+-    }
+-
+-    public OrderDetailsDTO updateOrderDetails(int id, float total, int customerId) {
+-        return new OrderDetailsDTO(orderDetailsRepository.updateOrderDetails(id, total, customerId));
+-    }
+-
+-    public OrderDetailsDTO deleteOrderDetailsByCustomerId(int customerId) {
+-        return new OrderDetailsDTO(orderDetailsRepository.deleteOrderDetailsByCustomerId(customerId));
+-    }
+-
+-    public OrderDetailsDTO updateOrderDetailsByCustomerId(int customerId, float total) {
+-        return new OrderDetailsDTO(orderDetailsRepository.updateOrderDetailsByCustomerId(customerId, total));
+-    }
+-
+-}
+Index: src/main/java/OrderItems/service/OrderItemsService.java
+===================================================================
+diff --git a/src/main/java/OrderItems/service/OrderItemsService.java b/src/main/java/OrderItems/service/OrderItemsService.java
+deleted file mode 100644
+--- a/src/main/java/OrderItems/service/OrderItemsService.java	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
++++ /dev/null	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
+@@ -1,48 +0,0 @@
+-package OrderItems.service;
+-
+-import OrderItems.dto.OrderItemsDTO;
+-import OrderItems.model.OrderItemsModel;
+-import OrderItems.repository.OrderItemsRepository;
+-import javax.enterprise.context.ApplicationScoped;
+-import javax.inject.Inject;
+-import java.util.List;
+-import java.util.stream.Collectors;
+-
+-@ApplicationScoped
+-public class OrderItemsService {
+-
+-    @Inject
+-    OrderItemsRepository orderItemsRepository;
+-
+-    public List<OrderItemsDTO> getOrderItemsModel(){
+-        List<OrderItemsModel> orderItemsModel = orderItemsRepository.getOrderItemsModel();
+-        return orderItemsModel.stream().map(OrderItemsDTO::new).collect(Collectors.toList());
+-    }
+-
+-    public OrderItemsDTO getOrderItemsById(int id) {
+-        return new OrderItemsDTO (orderItemsRepository.getOrderItemsById(id));
+-    }
+-
+-    public List<Object[]> getOrderItemsModelByCustomerId(int CustomerId) {
+-        return orderItemsRepository.getOrderItemsModelByCustomerId(CustomerId);
+-    }
+-
+-    public OrderItemsDTO makeOrderItemsDTO(int quantity, int productId, int orderDetailsId) {
+-        OrderItemsModel orderItemsModel = orderItemsRepository.makeAnOrder(quantity, productId, orderDetailsId);
+-        return new OrderItemsDTO(orderItemsModel);
+-    }
+-
+-    public OrderItemsDTO deleteOrderItemsById(int id) {
+-        return new OrderItemsDTO(orderItemsRepository.deleteOrderItemsById(id));
+-    }
+-
+-    public List<OrderItemsDTO> deleteOrderItemsByOrderDetailsId(int orderDetailsId) {
+-        List<OrderItemsModel> orderItemsModelList =  orderItemsRepository.deleteOrderItemsByOrderDetailsId(orderDetailsId);
+-        return orderItemsModelList.stream().map(OrderItemsDTO::new).collect(Collectors.toList());
+-    }
+-
+-    public OrderItemsDTO updateOrderItemsById(int id, int quantity, int productId, int orderDetailsId) {
+-        return new OrderItemsDTO(orderItemsRepository.updateOrderItemsById(id, quantity, productId, orderDetailsId));
+-    }
+-
+-}
+Index: src/main/java/Category/dto/CategoryDTO.java
+===================================================================
+diff --git a/src/main/java/Category/dto/CategoryDTO.java b/src/main/java/Category/dto/CategoryDTO.java
+deleted file mode 100644
+--- a/src/main/java/Category/dto/CategoryDTO.java	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
++++ /dev/null	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
+@@ -1,18 +0,0 @@
+-package Category.dto;
+-
+-import Category.model.CategoryModel;
+-import lombok.Getter;
+-import lombok.NoArgsConstructor;
+-import lombok.Setter;
+-
+-@Getter @Setter
+-@NoArgsConstructor
+-public class CategoryDTO {
+-    private int id;
+-    private String name;
+-
+-    public CategoryDTO(CategoryModel category) {
+-        this.id = category.getId();
+-        this.name = category.getName();
+-    }
+-}
+Index: src/main/java/importxmlfile/repository/ImportXMLRepository.java
+===================================================================
+diff --git a/src/main/java/importxmlfile/repository/ImportXMLRepository.java b/src/main/java/importxmlfile/repository/ImportXMLRepository.java
+deleted file mode 100644
+--- a/src/main/java/importxmlfile/repository/ImportXMLRepository.java	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
++++ /dev/null	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
+@@ -1,58 +0,0 @@
+-package importxmlfile.repository;
+-
+-import Category.model.CategoryModel;
+-import Customer.model.CustomerModel;
+-import Product.model.ProductModel;
+-import importxmlfile.dto.categorydto.CategoryDTO;
+-import importxmlfile.dto.customerdto.CustomerDTO;
+-import importxmlfile.dto.productdto.ProductDTO;
+-import javax.enterprise.context.ApplicationScoped;
+-import javax.inject.Inject;
+-import javax.management.Query;
+-import javax.persistence.EntityManager;
+-import java.util.List;
+-
+-@ApplicationScoped
+-public class ImportXMLRepository {
+-
+-    @Inject
+-    EntityManager entityManager;
+-
+-    public void importXMLForCustomers(List<CustomerModel> CustomerModel) {
+-        for (int i = 0; CustomerModel.size() > i; i++) {
+-            entityManager.persist(CustomerModel.get(i));
+-            if (i == 50) {
+-                entityManager.flush();
+-                entityManager.clear();
+-            }
+-            System.out.println("importing Customer: " + CustomerModel.get(i).getFirstName() + " " +
+-                    CustomerModel.get(i).getLastName() + " " + CustomerModel.get(i).getEmail() + " " +
+-                    CustomerModel.get(i).getAddress() + " " + CustomerModel.get(i).getPhoneNumber());
+-        }
+-    }
+-
+-    public void importXMLForCategories(List<CategoryModel> categoryModels) {
+-        for (int i = 0; categoryModels.size() > i; i++) {
+-            entityManager.persist(categoryModels.get(i));
+-            if (i == 50) {
+-                entityManager.flush();
+-                entityManager.clear();
+-            }
+-            System.out.println("importing Category: " + categoryModels.get(i).getName());
+-        }
+-
+-    }
+-
+-    public void importXMLForProducts(List<ProductModel> productModels) {
+-        for (int i = 0; productModels.size() > i; i++) {
+-            entityManager.persist(productModels.get(i));
+-            if (i == 50) {
+-                entityManager.flush();
+-                entityManager.clear();
+-            }
+-            System.out.println("importing Product: " + productModels.get(i).getName());
+-        }
+-    }
+-
+-
+-}
+Index: src/main/java/Product/dto/ProductDTO.java
+===================================================================
+diff --git a/src/main/java/Product/dto/ProductDTO.java b/src/main/java/Product/dto/ProductDTO.java
+deleted file mode 100644
+--- a/src/main/java/Product/dto/ProductDTO.java	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
++++ /dev/null	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
+@@ -1,33 +0,0 @@
+-package Product.dto;
+-
+-import Category.dto.CategoryDTO;
+-import Product.model.ProductModel;
+-import lombok.Getter;
+-import lombok.NoArgsConstructor;
+-import lombok.Setter;
+-
+-@Getter @Setter
+-@NoArgsConstructor
+-public class ProductDTO {
+-
+-    private int id;
+-    private String name;
+-    private String SKU;
+-    private String description;
+-    private float price;
+-    private int stock;
+-    private CategoryDTO category;
+-
+-    public ProductDTO(ProductModel product) {
+-        this.id = product.getId();
+-        this.name = product.getName();
+-        this.SKU = product.getSKU();
+-        this.description = product.getDescription();
+-        this.price = product.getPrice();
+-        this.stock = product.getStock();
+-
+-        if (product.getCategory() != null) {
+-            category = new CategoryDTO(product.getCategory());
+-        }
+-    }
+-}
+Index: src/main/java/OrderItems/dto/OrderItemsDTO.java
+===================================================================
+diff --git a/src/main/java/OrderItems/dto/OrderItemsDTO.java b/src/main/java/OrderItems/dto/OrderItemsDTO.java
+deleted file mode 100644
+--- a/src/main/java/OrderItems/dto/OrderItemsDTO.java	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
++++ /dev/null	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
+@@ -1,30 +0,0 @@
+-package OrderItems.dto;
+-
+-import OrderDetails.dto.OrderDetailsDTO;
+-import OrderItems.model.OrderItemsModel;
+-import Product.dto.ProductDTO;
+-import lombok.Getter;
+-import lombok.NoArgsConstructor;
+-import lombok.Setter;
+-
+-@NoArgsConstructor
+-@Getter @Setter
+-public class OrderItemsDTO {
+-
+-    private int id;
+-    private int quantity;
+-    private ProductDTO product;
+-    private OrderDetailsDTO orderDetails;
+-
+-    public OrderItemsDTO(OrderItemsModel orderItems) {
+-        this.id = orderItems.getId();
+-        this.quantity = orderItems.getQuantity();
+-        if (orderItems.getProduct() != null) {
+-            this.product = new ProductDTO(orderItems.getProduct());
+-        }
+-        if (orderItems.getOrderDetails() != null) {
+-            this.orderDetails = new OrderDetailsDTO(orderItems.getOrderDetails());
+-        }
+-    }
+-}
+-
+Index: src/main/java/Product/service/ProductService.java
+===================================================================
+diff --git a/src/main/java/Product/service/ProductService.java b/src/main/java/Product/service/ProductService.java
+deleted file mode 100644
+--- a/src/main/java/Product/service/ProductService.java	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
++++ /dev/null	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
+@@ -1,71 +0,0 @@
+-package Product.service;
+-
+-import Category.model.CategoryModel;
+-import Product.dto.ProductDTO;
+-import Product.model.ProductModel;
+-import Product.repository.ProductRepository;
+-import javax.enterprise.context.ApplicationScoped;
+-import javax.inject.Inject;
+-import javax.ws.rs.WebApplicationException;
+-import java.util.List;
+-import java.util.stream.Collectors;
+-
+-@ApplicationScoped
+-public class ProductService {
+-
+-    @Inject
+-    ProductRepository productRepository;
+-
+-    public List<ProductDTO> findAll() {
+-        List<ProductModel> products = productRepository.findAll();
+-        return products.stream().map(ProductDTO::new).collect(Collectors.toList());
+-    }
+-
+-    public ProductDTO findById(int id) {
+-        ProductModel productModel = productRepository.findById(id);
+-        return new ProductDTO(productModel);
+-    }
+-
+-    public List<ProductDTO> findByName(String name) {
+-        List<ProductModel> products = productRepository.findByName(name);
+-        return products.stream().map(ProductDTO::new).collect(Collectors.toList());
+-    }
+-
+-    public List<ProductDTO> findByCategoryId(int categoryId) {
+-        List<ProductModel> productModels = productRepository.findByCategoryId(categoryId);
+-        return productModels.stream().map(ProductDTO::new).collect(Collectors.toList());
+-    }
+-
+-    public ProductDTO addProduct(String name, String SKU,String description, float price, int stock, int categoryId) {
+-        ProductModel productModel = productRepository.addProduct(name, SKU, description, price, stock, categoryId);
+-        return new ProductDTO(productModel);
+-    }
+-
+-    public ProductDTO deleteById(int id) {
+-        ProductModel productModel = productRepository.deleteById(id);
+-        return new ProductDTO(productModel);
+-    }
+-
+-    public ProductDTO updateById(int id, String name, String SKU, String description, float price, int stock, int categoryId) {
+-        ProductModel productModel = productRepository.findById(id);
+-
+-        if (productModel == null) {
+-            throw new WebApplicationException("Product with ID " + id + " not found", 404);
+-        }
+-
+-        if (name != null) productModel.setName(name);
+-        if (SKU != null) productModel.setSKU(SKU);
+-        if (description != null) productModel.setDescription(description);
+-        if (price != 0) productModel.setPrice(price);
+-        if (stock != 0) productModel.setStock(stock);
+-
+-        if (categoryId != 0) {
+-            CategoryModel category = productRepository.getCategoryReferenceById(categoryId);
+-            productModel.setCategory(category);
+-        }
+-
+-        ProductModel updatedProduct = productRepository.updateById(productModel);
+-        return new ProductDTO(updatedProduct);
+-    }
+-}
+-
+Index: src/main/java/importxmlfile/template/TemplateDesignPattern.java
+===================================================================
+diff --git a/src/main/java/importxmlfile/template/TemplateDesignPattern.java b/src/main/java/importxmlfile/template/TemplateDesignPattern.java
+deleted file mode 100644
+--- a/src/main/java/importxmlfile/template/TemplateDesignPattern.java	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
++++ /dev/null	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
+@@ -1,14 +0,0 @@
+-package importxmlfile.template;
+-
+-public abstract class TemplateDesignPattern {
+-
+-    public final void importxml (byte[] file, String field) throws Exception {
+-        Object object = init(file, field);
+-        importXML(object);
+-//        saveToDatabase(objects);
+-    }
+-
+-    protected abstract Object init (byte[] file, String field) throws Exception;
+-    protected abstract void importXML (Object object) throws Exception;
+-//    protected abstract List<Object> saveToDatabase (List<Object> objects) throws Exception;
+-}
+Index: src/main/java/Invoice/repository/InvoiceRepository.java
+===================================================================
+diff --git a/src/main/java/Invoice/repository/InvoiceRepository.java b/src/main/java/Invoice/repository/InvoiceRepository.java
+deleted file mode 100644
+--- a/src/main/java/Invoice/repository/InvoiceRepository.java	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
++++ /dev/null	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
+@@ -1,89 +0,0 @@
+-package Invoice.repository;
+-
+-import Cart.model.CartModel;
+-import Customer.model.CustomerModel;
+-import Customer.repository.CRUDCustomerRepository;
+-import Invoice.dto.InvoiceDTO;
+-import Invoice.model.InvoiceModel;
+-import OrderDetails.model.OrderDetailsModel;
+-import javax.enterprise.context.ApplicationScoped;
+-import javax.inject.Inject;
+-import javax.persistence.EntityManager;
+-import java.util.List;
+-import java.util.Objects;
+-
+-@ApplicationScoped
+-public class InvoiceRepository {
+-
+-    @Inject
+-    EntityManager entityManager;
+-
+-    public InvoiceModel getInvoiceModelById(int invoiceId) {
+-        return entityManager.find(InvoiceModel.class, invoiceId);
+-    }
+-
+-    public InvoiceModel getInvoiceByOrderDetailsId(int orderDetailsId) {
+-        Object invoice = entityManager.createQuery("SELECT o FROM InvoiceModel o WHERE o.orderDetailsModel.id = :orderDetailsId").setParameter("orderDetailsId", orderDetailsId).getSingleResult();
+-        return (InvoiceModel) invoice;
+-    }
+-
+-    public List<Object[]> createInvoice(int orderDetailsId) {
+-        int customerData = entityManager.createQuery("select c.id, o.id from OrderDetailsModel o JOIN CustomerModel c on " +
+-                "c.id = o.customer.id where o.id = :orderDetailsId", Integer.class)
+-                .setParameter("orderDetailsId", orderDetailsId).getSingleResult();
+-
+-        List<Object[]> invoiceItem = entityManager.createQuery("select p.name, p.description, " +
+-                            "p.price, cart.quantity, (p.price * cart.quantity) As lineTotal from CartModel cart " +
+-                            "join CustomerModel c On c.id = cart.customerModel.id " +
+-                            "join ProductModel p on p.id = cart.productModel.id where c.id = :customerData", Object[].class)
+-                            .setParameter("customerData", customerData).getResultList();
+-
+-        InvoiceModel invoice = new InvoiceModel();
+-        OrderDetailsModel orderDetailsModel = getRefOfOrderDetails(orderDetailsId);
+-        if (orderDetailsModel != null) {
+-            invoice.setOrderDetailsModel(orderDetailsModel);
+-        }
+-        entityManager.persist(invoice);
+-
+-        List<CartModel> cartModels = itemsDeleteFromCart(customerData);
+-        for (CartModel cartModel : cartModels) {
+-            System.out.println(cartModel.toString());
+-        }
+-        return invoiceItem;
+-    }
+-
+-    public List<CartModel> itemsDeleteFromCart(int customerId) {
+-        List<CartModel> cartModels = entityManager.createQuery("Select cart From CartModel cart where customerModel.id = :customerId", CartModel.class).setParameter("customerId", customerId).getResultList();
+-
+-        for (CartModel cartModel : cartModels) {
+-            cartModels.remove(cartModel);
+-        }
+-        return cartModels;
+-    }
+-
+-    public OrderDetailsModel getRefOfOrderDetails(int orderDetailsId) {
+-        return entityManager.getReference(OrderDetailsModel.class, orderDetailsId);
+-    }
+-
+-    public InvoiceModel deleteInvoiceId(int id) {
+-        InvoiceModel invoiceModel = entityManager.find(InvoiceModel.class, id);
+-        entityManager.remove(invoiceModel);
+-        return invoiceModel;
+-    }
+-
+-    public InvoiceModel deleteInvoiceByOrderDetailsId(int orderDetailsId) {
+-        InvoiceModel invoiceModel = entityManager.createQuery("SELECT i from InvoiceModel i where " +
+-                "orderDetailsModel.id = :orderDetailsId ", InvoiceModel.class)
+-                .setParameter("orderDetailsId", orderDetailsId).getSingleResult();
+-        return invoiceModel;
+-    }
+-
+-    public InvoiceModel updateInvoiceById(int id, int orderDetailsId) {
+-        InvoiceModel invoiceModel = entityManager.find(InvoiceModel.class, id);
+-        if (orderDetailsId != 0) {
+-            OrderDetailsModel orderDetailsModel = entityManager.find(OrderDetailsModel.class, orderDetailsId);
+-            invoiceModel.setOrderDetailsModel(orderDetailsModel);
+-        }
+-        return invoiceModel;
+-    }
+-}
+Index: src/main/java/OrderDetails/repository/OrderDetailsRepository.java
+===================================================================
+diff --git a/src/main/java/OrderDetails/repository/OrderDetailsRepository.java b/src/main/java/OrderDetails/repository/OrderDetailsRepository.java
+deleted file mode 100644
+--- a/src/main/java/OrderDetails/repository/OrderDetailsRepository.java	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
++++ /dev/null	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
+@@ -1,206 +0,0 @@
+-package OrderDetails.repository;
+-
+-import Cart.repository.CartRepository;
+-import Customer.model.CustomerModel;
+-import Invoice.model.InvoiceModel;
+-import OrderDetails.model.OrderDetailsModel;
+-import OrderItems.model.OrderItemsModel;
+-import OrderItems.repository.OrderItemsRepository;
+-import javax.enterprise.context.ApplicationScoped;
+-import javax.inject.Inject;
+-import javax.persistence.EntityManager;
+-import java.util.List;
+-
+-@ApplicationScoped
+-public class OrderDetailsRepository {
+-
+-    @Inject
+-    EntityManager entityManager;
+-
+-    @Inject
+-    OrderItemsRepository orderItemsRepository;
+-
+-    @Inject
+-    CartRepository cartRepository;
+-
+-    public List<Object[]> getOrderDetails() {
+-        List<Object[]> orderDetailsModel = entityManager.createQuery(
+-                "select c.id, c.firstName, c.lastName, c.phoneNumber, p.name, p.description, p.price, cart.quantity " +
+-                        "From CartModel cart JOIN cart.customerModel c JOIN cart.productModel p",
+-                Object[].class).getResultList();
+-
+-        for (Object[] objects : orderDetailsModel) {
+-            int id = Integer.parseInt(objects[0].toString());
+-            String firstName = objects[1].toString();
+-            String lastName = objects[2].toString();
+-            String phoneNumber = objects[3].toString();
+-            String nameOfProduct = objects[4].toString();
+-            String description = objects[5].toString();
+-            float price = Float.parseFloat(objects[6].toString());
+-            int quantity = Integer.parseInt(objects[7].toString());
+-
+-            System.out.println(id + " " + firstName + " " + lastName + " " + phoneNumber + " " + nameOfProduct + " " + description + " " + price + " " + quantity);
+-        }
+-        return orderDetailsModel;
+-    }
+-
+-    public OrderDetailsModel getOrderDetailsByOrderId(int id) {
+-        return entityManager.find(OrderDetailsModel.class, id);
+-    }
+-
+-    public OrderDetailsModel getOrderDetailsByCustomerId(int customerId) {
+-        return entityManager.createQuery("SELECT o From OrderDetailsModel o Join CustomerModel c On o.customer.id = c.id " +
+-                "where c.id = :customerId", OrderDetailsModel.class).setParameter("customerId", customerId).getSingleResult();
+-    }
+-
+-
+-    public OrderDetailsModel updateOrderDetails(int orderId, float total, int customerId) {
+-        OrderDetailsModel orderDetailsModel = getOrderDetailsByOrderId(orderId);
+-        orderDetailsModel.setTotalPrice(total);
+-        if (customerId != 0 && customerId != -1) {
+-            CustomerModel customerModel = entityManager.find(CustomerModel.class, customerId);
+-            orderDetailsModel.setCustomer(customerModel);
+-        }
+-        entityManager.merge(orderDetailsModel);
+-        return orderDetailsModel;
+-    }
+-
+-    // Here should send list of data like product ID not just onse.
+-    public OrderDetailsModel createOrderDetails(int customerId) {
+-        OrderDetailsModel orderDetailsModel = new OrderDetailsModel();
+-        List<Object[]> orderDetails = entityManager.createQuery("select cart.quantity, p.price, cart.customerModel.id, " +
+-                        "p.id from CartModel cart Join " +
+-                        "CustomerModel c On cart.customerModel.id = c.id " +
+-                        "Join ProductModel p On cart.productModel.id = p.id where c.id = :customerId", Object[].class)
+-                .setParameter("customerId", customerId).getResultList();
+-
+-
+-        int productId = 0, quantity = 0, customerIdDatabase = 0;
+-        double totalPrice = 0;
+-        float price = 0;
+-
+-        for (Object[] objects : orderDetails) {
+-            quantity = Integer.parseInt(objects[0].toString());
+-            price = Float.parseFloat(objects[1].toString());
+-            customerIdDatabase = Integer.parseInt(objects[2].toString());
+-            productId = Integer.parseInt(objects[3].toString());
+-            totalPrice += calculateTotalPrice(quantity, price);
+-        }
+-
+-        if (customerId != 0 && customerId != -1) {
+-            CustomerModel customerModel = entityManager.find(CustomerModel.class, customerId);
+-            orderDetailsModel.setCustomer(customerModel);
+-            orderDetailsModel.setTotalPrice(totalPrice);
+-            entityManager.persist(orderDetailsModel);
+-
+-            List<Integer> orderDetailsIds = entityManager.createQuery("SELECT o.id from OrderDetailsModel o " +
+-                            "Where o.customer.id = :customerIdDatabase",
+-                    Integer.class).setParameter("customerIdDatabase", customerIdDatabase).getResultList();
+-
+-
+-            List<Object[]> items = entityManager.createQuery("SELECT cart.quantity, cart.customerModel.id, cart.productModel.id " +
+-                    "from CartModel cart join CustomerModel cus on cus.id = cart.customerModel.id where cus.id = :customerId", Object[].class).setParameter("customerId", customerId).getResultList();
+-
+-
+-            for (Object[] objects : items) {
+-                int cartQuantity = Integer.parseInt(objects[0].toString());
+-                int customerIdData = Integer.parseInt(objects[1].toString());
+-                int productIdData = Integer.parseInt(objects[2].toString());
+-
+-                for (int objects2 : orderDetailsIds) {
+-                    int orderDetailsId = objects2;
+-                    orderItemsRepository.makeAnOrder(quantity, productId, orderDetailsId);
+-                }
+-            }
+-            List<Integer> cartId = entityManager.createQuery("SELECT cart.id FROM CartModel cart JOIN CustomerModel c on c.id = cart.customerModel.id WHERE cart.customerModel.id = :customerId", Integer.class).setParameter("customerId", customerId).getResultList();
+-            for (Integer cart : cartId) {
+-                cartRepository.removeCart(cart);
+-            }
+-        } else {
+-            orderDetailsModel = updateOrderDetails(customerId, totalPrice);
+-        }
+-        return orderDetailsModel;
+-    }
+-
+-    public OrderDetailsModel updateOrderDetails(int customerId, double price) {
+-        OrderDetailsModel orderDetailsModel = getOrderDetailsByCustomerId(customerId);
+-        orderDetailsModel.setTotalPrice(price);
+-        entityManager.merge(orderDetailsModel);
+-        return orderDetailsModel;
+-    }
+-
+-    public double calculateTotalPrice(int quantity, float price) {
+-        double sum = 0;
+-        for (int i = 0; i < quantity; i++) {
+-            sum += price;
+-        }
+-        return sum;
+-    }
+-
+-    public OrderDetailsModel deleteOrderDetails(int orderDetailId) {
+-        OrderDetailsModel orderDetailsModel = getOrderDetailsByOrderId(orderDetailId);
+-
+-        List<Integer> orderItemsIds = entityManager.createQuery("SELECT oi.id from OrderItemsModel oi Join OrderDetailsModel od On od.id = oi.orderDetails.id " +
+-                "where oi.id = :orderDetailId", Integer.class).setParameter("orderDetailId", orderDetailId).getResultList();
+-
+-        for (Integer orderItemId : orderItemsIds) {
+-            OrderItemsModel orderItem = entityManager.find(OrderItemsModel.class, orderItemId);
+-            if (orderItem != null) {
+-                entityManager.remove(orderItem);
+-            }
+-        }
+-
+-        List<Integer> invoiceId = entityManager.createQuery("SELECT iv.id from InvoiceModel iv Join OrderDetailsModel od On od.id = iv.orderDetailsModel.id " +
+-                "where od.id = :orderDetailId", Integer.class).setParameter("orderDetailId", orderDetailId).getResultList();
+-
+-        for (Integer invoiceId1 : invoiceId) {
+-            InvoiceModel invoice = entityManager.find(InvoiceModel.class, invoiceId1);
+-            if (invoice != null) {
+-                entityManager.remove(invoice);
+-            }
+-        }
+-
+-        entityManager.remove(orderDetailsModel);
+-        return orderDetailsModel;
+-    }
+-
+-    public OrderDetailsModel deleteOrderDetailsByCustomerId(int customerId) {
+-        OrderDetailsModel orderDetailsModel = getOrderDetailsByCustomerId(customerId);
+-
+-        int orderDetailId = entityManager.createQuery("select od.customer.id From OrderDetailsModel od " +
+-                "join CustomerModel c on od.customer.id = c.id where " +
+-                "od.customer.id = :customerId", Integer.class).setParameter("customerId", customerId).getSingleResult();
+-
+-        List<Integer> orderItemsIds = entityManager.createQuery("SELECT oi.id from OrderItemsModel oi Join OrderDetailsModel od On od.id = oi.orderDetails.id " +
+-                "where oi.id = :orderDetailId", Integer.class).setParameter("orderDetailId", orderDetailId).getResultList();
+-
+-
+-        for (Integer orderItemId : orderItemsIds) {
+-            OrderItemsModel orderItem = entityManager.find(OrderItemsModel.class, orderItemId);
+-            if (orderItem != null) {
+-                entityManager.remove(orderItem);
+-            }
+-        }
+-
+-        List<Integer> invoiceId = entityManager.createQuery("SELECT iv.id from InvoiceModel iv Join OrderDetailsModel od On od.id = iv.orderDetailsModel.id " +
+-                "where od.id = :orderDetailId", Integer.class).setParameter("orderDetailId", orderDetailId).getResultList();
+-
+-        for (Integer invoiceId1 : invoiceId) {
+-            InvoiceModel invoice = entityManager.find(InvoiceModel.class, invoiceId1);
+-            if (invoice != null) {
+-                entityManager.remove(invoice);
+-            }
+-        }
+-
+-        entityManager.remove(orderDetailsModel);
+-        return orderDetailsModel;
+-    }
+-
+-    public OrderDetailsModel updateOrderDetailsByCustomerId(int customerId, double total) {
+-        OrderDetailsModel orderDetailsModel = getOrderDetailsByCustomerId(customerId);
+-        orderDetailsModel.setTotalPrice(total);
+-        entityManager.merge(orderDetailsModel);
+-        return orderDetailsModel;
+-    }
+-}
+-
+Index: src/main/java/importxmlfile/dto/customerdto/CustomerDTO.java
+===================================================================
+diff --git a/src/main/java/importxmlfile/dto/customerdto/CustomerDTO.java b/src/main/java/importxmlfile/dto/customerdto/CustomerDTO.java
+deleted file mode 100644
+--- a/src/main/java/importxmlfile/dto/customerdto/CustomerDTO.java	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
++++ /dev/null	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
+@@ -1,61 +0,0 @@
+-package importxmlfile.dto.customerdto;
+-
+-import javax.xml.bind.annotation.XmlAccessType;
+-import javax.xml.bind.annotation.XmlAccessorType;
+-import javax.xml.bind.annotation.XmlElement;
+-import javax.xml.bind.annotation.XmlRootElement;
+-
+-@XmlRootElement(name = "Customer")
+-@XmlAccessorType(XmlAccessType.FIELD)
+-public class CustomerDTO {
+-
+-    @XmlElement(name = "firstName")
+-    private String firstName;
+-
+-    @XmlElement(name = "lastName")
+-    private String lastName;
+-
+-    @XmlElement(name = "email")
+-    private String email;
+-
+-    @XmlElement(name = "address")
+-    private String address;
+-
+-    @XmlElement(name = "phoneNumber")
+-    private int phoneNumber;
+-
+-    public String getFirstNameDTO() {
+-        return firstName;
+-    }
+-    public void setFirstNameDTO(String firstName) {
+-        this.firstName = firstName;
+-    }
+-
+-    public String getLastNameDTO() {
+-        return lastName;
+-    }
+-    public void setLastNameDTO(String lastName) {
+-        this.lastName = lastName;
+-    }
+-
+-    public String getEmailDTO() {
+-        return email;
+-    }
+-    public void setEmailDTO(String email) {
+-        this.email = email;
+-    }
+-
+-    public String getAddressDTO() {
+-        return address;
+-    }
+-    public void setAddressDTO(String address) {
+-        this.address = address;
+-    }
+-
+-    public int getPhoneNumberDTO() {
+-        return phoneNumber;
+-    }
+-    public void setPhoneNumberDTO(int phoneNumber) {
+-        this.phoneNumber = phoneNumber;
+-    }
+-}
+Index: src/main/java/Category/model/CategoryModel.java
+===================================================================
+diff --git a/src/main/java/Category/model/CategoryModel.java b/src/main/java/Category/model/CategoryModel.java
+deleted file mode 100644
+--- a/src/main/java/Category/model/CategoryModel.java	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
++++ /dev/null	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
+@@ -1,17 +0,0 @@
+-package Category.model;
+-
+-import lombok.Getter;
+-import lombok.Setter;
+-
+-import javax.persistence.*;
+-
+-@Entity
+-@Table(name = "Category")
+-@Getter @Setter
+-public class CategoryModel {
+-
+-    @Id
+-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+-    private int id;
+-    private String name;
+-}
+Index: src/main/java/Invoice/controller/InvoiceController.java
+===================================================================
+diff --git a/src/main/java/Invoice/controller/InvoiceController.java b/src/main/java/Invoice/controller/InvoiceController.java
+deleted file mode 100644
+--- a/src/main/java/Invoice/controller/InvoiceController.java	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
++++ /dev/null	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
+@@ -1,73 +0,0 @@
+-package Invoice.controller;
+-
+-import Invoice.dto.InvoiceDTO;
+-import Invoice.service.InvoiceService;
+-import javax.enterprise.context.ApplicationScoped;
+-import javax.inject.Inject;
+-import javax.transaction.Transactional;
+-import javax.ws.rs.*;
+-import javax.ws.rs.core.MediaType;
+-import java.util.List;
+-
+-@ApplicationScoped
+-@Path("invoice")
+-public class InvoiceController {
+-
+-    @Inject
+-    InvoiceService invoiceService;
+-
+-    @GET
+-    @Path("getInvoiceById")
+-    @Consumes(MediaType.APPLICATION_JSON)
+-    @Produces(MediaType.APPLICATION_JSON)
+-    @Transactional
+-    public InvoiceDTO getInvoiceById(@QueryParam("invoiceId") int invoiceId) {
+-        return invoiceService.getInvoiceById(invoiceId);
+-    }
+-
+-    @GET
+-    @Path("getInvoiceByOrderDetId")
+-    @Consumes(MediaType.APPLICATION_JSON)
+-    @Produces(MediaType.APPLICATION_JSON)
+-    @Transactional
+-    public InvoiceDTO getInvoiceByOrderDetailsIdId(@QueryParam("orderDetailsId") int orderDetailsId) {
+-        return invoiceService.getInvoiceByOrderDetailsIdId(orderDetailsId);
+-    }
+-
+-    @POST
+-    @Path("createInvoice")
+-    @Consumes(MediaType.APPLICATION_JSON)
+-    @Produces(MediaType.APPLICATION_JSON)
+-    @Transactional
+-    public List<Object[]> createInvoice(@QueryParam("orderDetailsId") int orderDetailsId) {
+-        return invoiceService.createInvoice(orderDetailsId);
+-    }
+-
+-    @DELETE
+-    @Path("deleteInvoiceById")
+-    @Consumes(MediaType.APPLICATION_JSON)
+-    @Produces(MediaType.APPLICATION_JSON)
+-    @Transactional
+-    public InvoiceDTO deleteInvoiceId(@QueryParam("id") int id) {
+-        return invoiceService.deleteInvoiceId(id);
+-    }
+-
+-    @DELETE
+-    @Path("deleteInvoiceByOrderDetId")
+-    @Consumes(MediaType.APPLICATION_JSON)
+-    @Produces(MediaType.APPLICATION_JSON)
+-    @Transactional
+-    public InvoiceDTO deleteInvoiceByOrderDetailsId(@QueryParam("orderDetailsId") int orderDetailsId) {
+-        return invoiceService.deleteInvoiceByOrderDetailsId(orderDetailsId);
+-    }
+-
+-    @PUT
+-    @Path("updateInvoiceId")
+-    @Consumes(MediaType.APPLICATION_JSON)
+-    @Produces(MediaType.APPLICATION_JSON)
+-    @Transactional
+-    public InvoiceDTO updateInvoiceById(@QueryParam("id") int id,
+-                                        @QueryParam("orderDetailsId") int orderDetailsId) {
+-        return invoiceService.updateInvoiceById(id, orderDetailsId);
+-    }
+-}
+Index: src/main/java/importxmlfile/dto/productdto/ProductDTO.java
+===================================================================
+diff --git a/src/main/java/importxmlfile/dto/productdto/ProductDTO.java b/src/main/java/importxmlfile/dto/productdto/ProductDTO.java
+deleted file mode 100644
+--- a/src/main/java/importxmlfile/dto/productdto/ProductDTO.java	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
++++ /dev/null	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
+@@ -1,73 +0,0 @@
+-package importxmlfile.dto.productdto;
+-
+-import javax.xml.bind.annotation.XmlAccessType;
+-import javax.xml.bind.annotation.XmlAccessorType;
+-import javax.xml.bind.annotation.XmlElement;
+-import javax.xml.bind.annotation.XmlRootElement;
+-
+-@XmlRootElement(name = "Product")
+-@XmlAccessorType(XmlAccessType.FIELD)
+-public class ProductDTO {
+-
+-    @XmlElement(name = "Name")
+-    private String name;
+-
+-    @XmlElement(name = "SKU")
+-    private String SKU;
+-
+-    @XmlElement(name = "Description")
+-    private String description;
+-
+-    @XmlElement(name = "Price")
+-    private float price;
+-
+-    @XmlElement(name = "Stock")
+-    private int stock;
+-
+-    @XmlElement(name = "Category_Id")
+-    private int categoryId;
+-
+-    public String getNamed() {
+-        return name;
+-    }
+-    public void setNamed(String name) {
+-        this.name = name;
+-    }
+-
+-    public String getSKUU() {
+-        return SKU;
+-    }
+-    public void getSKUU(String SKU) {
+-        this.SKU = SKU;
+-    }
+-
+-    public String getDescriptionn() {
+-        return description;
+-    }
+-    public void setDescriptionn(String description) {
+-        this.description = description;
+-    }
+-
+-    public float getPricee() {
+-        return price;
+-    }
+-    public void setPricee(float price) {
+-        this.price = price;
+-    }
+-
+-    public int getStockk() {
+-        return stock;
+-    }
+-    public void setStockk(int stock) {
+-        this.stock = stock;
+-    }
+-
+-    public int getCategoryIdd() {
+-        return categoryId;
+-    }
+-    public void setCategoryIdd(int categoryId) {
+-        this.categoryId = categoryId;
+-    }
+-}
+-
+-
+Index: src/main/java/Cart/repository/CartRepository.java
+===================================================================
+diff --git a/src/main/java/Cart/repository/CartRepository.java b/src/main/java/Cart/repository/CartRepository.java
+deleted file mode 100644
+--- a/src/main/java/Cart/repository/CartRepository.java	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
++++ /dev/null	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
+@@ -1,100 +0,0 @@
+-package Cart.repository;
+-
+-import Cart.model.CartModel;
+-import Customer.model.CustomerModel;
+-import OrderDetails.repository.OrderDetailsRepository;
+-import Product.model.ProductModel;
+-import javax.enterprise.context.ApplicationScoped;
+-import javax.inject.Inject;
+-import javax.persistence.EntityManager;
+-import java.util.List;
+-
+-@ApplicationScoped
+-public class CartRepository {
+-
+-    @Inject
+-    EntityManager entityManager;
+-
+-    @Inject
+-    OrderDetailsRepository orderDetailsRepository;
+-
+-    public List<CartModel> allTheCarts() {
+-        return entityManager.createQuery("SELECT c FROM CartModel c", CartModel.class).getResultList();
+-    }
+-
+-    public CartModel findCartById(int cartId) {
+-        return entityManager.find(CartModel.class, cartId);
+-    }
+-
+-    public List<Object[]> findCartByCustomerId(int customerId) {
+-        List<Object[]> objects = entityManager.createQuery("Select w.productModel.id, w.productModel.name, w.productModel.price, w.quantity FROM CartModel w where w.customerModel.id = :customerId", Object[].class)
+-                .setParameter("customerId", customerId)
+-                .getResultList();
+-
+-        for (Object[] object: objects) {
+-            int id = Integer.parseInt(object[0].toString());
+-            String productName = object[1].toString();
+-            float price = Float.parseFloat(object[2].toString());
+-            int quantity = Integer.parseInt(object[3].toString());
+-
+-            double totalPrice = orderDetailsRepository.calculateTotalPrice(quantity, price);
+-            System.out.println("The product Id " + id + " \nThe product ID: " + productName + " \nprice for the product: " + price + " \nThe quantity: " + quantity + " \nTotal Price:  " + totalPrice);
+-            System.out.println("_______________________________________________________________");
+-        }
+-        return objects;
+-    }
+-
+-    public CartModel AddProductToCart(int quantity, int customerId, int productId) {
+-        List<CartModel> existing = entityManager.createQuery("SELECT w FROM CartModel w where w.productModel.id = :productId AND w.customerModel.id = :customerId", CartModel.class)
+-                .setParameter("productId", productId).setParameter("customerId", customerId).getResultList();
+-
+-        if (!existing.isEmpty()) {
+-            CartModel cartItem = existing.get(0);
+-            int newQuantity = cartItem.getQuantity() + quantity;
+-            cartItem.setQuantity(newQuantity);
+-            return cartItem;
+-        }
+-
+-        CartModel cartModel = new CartModel();
+-        cartModel.setQuantity(quantity);
+-        if (customerId != 0) {
+-            CustomerModel customerModel = getCustomerRefById(customerId);
+-            cartModel.setCustomerModel(customerModel);
+-        }
+-        if (productId != 0) {
+-            ProductModel productModel = getProductRefById(productId);
+-            cartModel.setProductModel(productModel);
+-        }
+-        entityManager.persist(cartModel);
+-        return cartModel;
+-    }
+-
+-    public CartModel removeCart(int cartId) {
+-        CartModel cartModel = entityManager.find(CartModel.class, cartId);
+-        entityManager.remove(cartModel);
+-        return cartModel;
+-    }
+-
+-    public CartModel removeProductFromCart(int customerId, int productId) {
+-        CartModel cartModel = entityManager.createQuery("SELECT w FROM CartModel w Where w.customerModel.id = :customerId AND w.productModel.id = :productId", CartModel.class)
+-                .setParameter("customerId", customerId)
+-                .setParameter("productId", productId)
+-                .getSingleResult();
+-
+-        entityManager.remove(cartModel);
+-        return cartModel;
+-    }
+-
+-    public CartModel updateCart(CartModel cartModel) {
+-        entityManager.merge(cartModel);
+-        return cartModel;
+-    }
+-
+-    public CustomerModel getCustomerRefById(int customerId) {
+-        return entityManager.getReference(CustomerModel.class, customerId);
+-    }
+-    public ProductModel getProductRefById(int productId) {
+-        return entityManager.getReference(ProductModel.class, productId);
+-    }
+-}
+-
+Index: src/main/java/Customer/repository/CRUDCustomerRepository.java
+===================================================================
+diff --git a/src/main/java/Customer/repository/CRUDCustomerRepository.java b/src/main/java/Customer/repository/CRUDCustomerRepository.java
+deleted file mode 100644
+--- a/src/main/java/Customer/repository/CRUDCustomerRepository.java	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
++++ /dev/null	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
+@@ -1,50 +0,0 @@
+-package Customer.repository;
+-
+-import Customer.model.CustomerModel;
+-import javax.enterprise.context.ApplicationScoped;
+-import javax.inject.Inject;
+-import javax.persistence.EntityManager;
+-import java.util.List;
+-
+-@ApplicationScoped
+-public class CRUDCustomerRepository {
+-
+-    @Inject
+-    EntityManager entityManager;
+-
+-    public List<CustomerModel> findAll() {
+-        List<CustomerModel> customers = entityManager.createQuery("SELECT c FROM CustomerModel c", CustomerModel.class).getResultList();
+-        return customers;
+-    }
+-
+-    public CustomerModel findById(int id) {
+-        return entityManager.find(CustomerModel.class, id);
+-    }
+-
+-    public CustomerModel findByEmail(String email) {
+-        List<CustomerModel> customers = entityManager.createQuery("SELECT c FROM CustomerModel c where c.email = :email", CustomerModel.class).setParameter("email", email).getResultList();
+-        return customers.get(0);
+-    }
+-
+-    public CustomerModel addCustomer(String firstName, String lastName, String email, String address, String phoneNumber) {
+-        CustomerModel customer = new CustomerModel();
+-        customer.setFirstName(firstName);
+-        customer.setLastName(lastName);
+-        customer.setEmail(email);
+-        customer.setAddress(address);
+-        customer.setPhoneNumber(phoneNumber);
+-        entityManager.persist(customer);
+-        return customer;
+-    }
+-
+-    public CustomerModel updateCustomer(CustomerModel customer) {
+-        entityManager.merge(customer);
+-        return customer;
+-    }
+-
+-    public CustomerModel deleteCustomer(int id) {
+-        CustomerModel customer = findById(id);
+-        entityManager.remove(customer);
+-        return customer;
+-    }
+-}
+\ No newline at end of file
+Index: src/main/java/OrderDetails/dto/OrderDetailsDTO.java
+===================================================================
+diff --git a/src/main/java/OrderDetails/dto/OrderDetailsDTO.java b/src/main/java/OrderDetails/dto/OrderDetailsDTO.java
+deleted file mode 100644
+--- a/src/main/java/OrderDetails/dto/OrderDetailsDTO.java	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
++++ /dev/null	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
+@@ -1,26 +0,0 @@
+-package OrderDetails.dto;
+-
+-import Category.dto.CategoryDTO;
+-import Customer.dto.CustomerDTO;
+-import OrderDetails.model.OrderDetailsModel;
+-import lombok.Getter;
+-import lombok.NoArgsConstructor;
+-import lombok.Setter;
+-
+-@NoArgsConstructor
+-@Getter @Setter
+-public class OrderDetailsDTO {
+-
+-    private int id;
+-    private double totalPrice;
+-    private CategoryDTO customer;
+-
+-    public OrderDetailsDTO(OrderDetailsModel orderDetails) {
+-        this.id = orderDetails.getId();
+-        this.totalPrice = orderDetails.getTotalPrice();
+-
+-        if (orderDetails.getCustomer() != null) {
+-            CustomerDTO customer = new CustomerDTO(orderDetails.getCustomer());
+-        }
+-    }
+-}
+Index: src/main/java/Wishlist/service/WishlistService.java
+===================================================================
+diff --git a/src/main/java/Wishlist/service/WishlistService.java b/src/main/java/Wishlist/service/WishlistService.java
+deleted file mode 100644
+--- a/src/main/java/Wishlist/service/WishlistService.java	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
++++ /dev/null	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
+@@ -1,47 +0,0 @@
+-package Wishlist.service;
+-
+-import Wishlist.dto.WishlistDTO;
+-import Wishlist.model.WishlistModel;
+-import Wishlist.repository.WishlistRepository;
+-import javax.enterprise.context.ApplicationScoped;
+-import javax.inject.Inject;
+-import java.util.List;
+-import java.util.stream.Collectors;
+-
+-@ApplicationScoped
+-public class WishlistService {
+-
+-    @Inject
+-    WishlistRepository wishlistRepository;
+-
+-    public List<WishlistDTO> allTheWishlists() {
+-        List<WishlistModel> wishlistModel = wishlistRepository.getAllWishlist();
+-        return wishlistModel.stream().map(WishlistDTO::new).collect(Collectors.toList());
+-    }
+-
+-    public WishlistDTO getWishlistById(int id) {
+-        WishlistModel wishlistModel = wishlistRepository.getWishlistModelById(id);
+-        return new WishlistDTO(wishlistModel);
+-    }
+-
+-    public List<Object[]> getAllWishlistFromTheCustomerId(int customerId) {
+-        return wishlistRepository.getAllWishlistFromTheCustomerId(customerId);
+-    }
+-
+-    public WishlistDTO addToWishlist(int customerId, int productId) {
+-        WishlistModel wishlistModel = wishlistRepository.addToWishlist(customerId, productId);;
+-        return new WishlistDTO(wishlistModel);
+-    }
+-
+-    public WishlistDTO deleteWishlist (int id) {
+-        WishlistModel wishlistModel = wishlistRepository.deleteWishlistById(id);
+-        return new WishlistDTO(wishlistModel);
+-    }
+-
+-    public WishlistDTO deleteWishlistByCustomerIdAndProductId(int productId, int customerId) {
+-        WishlistModel wishlistModel = wishlistRepository.deleteWishlistByCustomerIdAndProductId(productId, customerId);
+-        return new WishlistDTO(wishlistModel);
+-    }
+-
+-
+-}
+Index: src/main/java/Cart/controller/CartController.java
+===================================================================
+diff --git a/src/main/java/Cart/controller/CartController.java b/src/main/java/Cart/controller/CartController.java
+deleted file mode 100644
+--- a/src/main/java/Cart/controller/CartController.java	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
++++ /dev/null	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
+@@ -1,89 +0,0 @@
+-package Cart.controller;
+-
+-import Cart.dto.CartDTO;
+-import Cart.service.CartService;
+-import javax.enterprise.context.ApplicationScoped;
+-import javax.inject.Inject;
+-import javax.transaction.Transactional;
+-import javax.ws.rs.*;
+-import javax.ws.rs.core.MediaType;
+-import java.util.List;
+-
+-@ApplicationScoped
+-@Path("cart")
+-public class CartController {
+-
+-    @Inject
+-    CartService cartService;
+-
+-    @GET
+-    @Path("allTheCarts")
+-    @Produces(MediaType.APPLICATION_JSON)
+-    @Transactional
+-    public List<CartDTO> allTheCarts() {
+-        return cartService.findAll();
+-    }
+-
+-    @GET
+-    @Path("getCartById")
+-    @Produces(MediaType.APPLICATION_JSON)
+-    @Consumes(MediaType.APPLICATION_JSON)
+-    @Transactional
+-    public CartDTO getCartById(@QueryParam("id") int id) {
+-        return cartService.findCartById(id);
+-    }
+-
+-    @GET
+-    @Path("getCartByCustomerId")
+-    @Produces(MediaType.APPLICATION_JSON)
+-    @Consumes(MediaType.APPLICATION_JSON)
+-    @Transactional
+-    public List<Object[]> getCartByCustomerId(@QueryParam("customerId") int customerId) {
+-        return cartService.findCartByCustomerId(customerId);
+-    }
+-
+-    @POST
+-    @Path("AddProductToCart")
+-    @Produces(MediaType.APPLICATION_JSON)
+-    @Consumes(MediaType.APPLICATION_JSON)
+-    @Transactional
+-    public CartDTO AddProductToCart(
+-            @QueryParam("quantity") int quantity,
+-            @QueryParam("customerId") int customerId,
+-            @QueryParam("productId") int productId
+-    ) {
+-        return cartService.AddProductToCart(quantity, customerId, productId);
+-    }
+-
+-    @PUT
+-    @Path("updateCart")
+-    @Produces(MediaType.APPLICATION_JSON)
+-    @Consumes(MediaType.APPLICATION_JSON)
+-    @Transactional
+-    public CartDTO updateCart(
+-            @QueryParam("id") int id,
+-            @QueryParam("quantity") int quantity,
+-            @QueryParam("customerId") int customerId,
+-            @QueryParam("productId") int productId
+-    ) {
+-        return cartService.updateCart(id, quantity, customerId, productId);
+-    }
+-
+-    @DELETE
+-    @Path("deleteCart")
+-    @Produces(MediaType.APPLICATION_JSON)
+-    @Consumes(MediaType.APPLICATION_JSON)
+-    @Transactional
+-    public CartDTO deleteCart(@QueryParam("id") int id) {
+-        return cartService.deleteCart(id);
+-    }
+-
+-    @DELETE
+-    @Path("deleteProductFromtCart")
+-    @Consumes(MediaType.APPLICATION_JSON)
+-    @Produces(MediaType.APPLICATION_JSON)
+-    @Transactional
+-    public CartDTO deleteProductFromCart(@QueryParam("customerId") int customerId, @QueryParam("productId") int productId) {
+-        return cartService.deleteProductFromCart(customerId, productId);
+-    }
+-}
+Index: src/main/java/Product/controller/ProductController.java
+===================================================================
+diff --git a/src/main/java/Product/controller/ProductController.java b/src/main/java/Product/controller/ProductController.java
+deleted file mode 100644
+--- a/src/main/java/Product/controller/ProductController.java	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
++++ /dev/null	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
+@@ -1,92 +0,0 @@
+-package Product.controller;
+-
+-import Product.dto.ProductDTO;
+-import Product.service.ProductService;
+-import javax.enterprise.context.ApplicationScoped;
+-import javax.inject.Inject;
+-import javax.transaction.Transactional;
+-import javax.ws.rs.*;
+-import javax.ws.rs.core.MediaType;
+-import java.util.List;
+-
+-@ApplicationScoped
+-@Path("product")
+-public class ProductController {
+-
+-    @Inject
+-    ProductService productService;
+-
+-    @GET
+-    @Path("/all")
+-    @Produces(MediaType.APPLICATION_JSON)
+-    @Transactional
+-    public List<ProductDTO> getAllProducts() {
+-        return productService.findAll();
+-    }
+-
+-    @GET
+-    @Path("/getById")
+-    @Produces(MediaType.APPLICATION_JSON)
+-    @Transactional
+-    public ProductDTO getById(@QueryParam("id") int id) {
+-        return productService.findById(id);
+-    }
+-
+-    @GET
+-    @Path("/getByName")
+-    @Produces(MediaType.APPLICATION_JSON)
+-    @Transactional
+-    public List<ProductDTO> getByName(@QueryParam("name") String name) {
+-        return productService.findByName(name);
+-    }
+-
+-    @GET
+-    @Path("/getByCategoryId")
+-    @Produces(MediaType.APPLICATION_JSON)
+-    @Transactional
+-    public List<ProductDTO> getByCategoryId(@QueryParam("id") int id) {
+-        return productService.findByCategoryId(id);
+-    }
+-
+-    @POST
+-    @Path("addProduct")
+-    @Produces(MediaType.APPLICATION_JSON)
+-    @Consumes(MediaType.APPLICATION_JSON)
+-    @Transactional
+-    public ProductDTO addProduct(
+-            @QueryParam("name") String name,
+-            @QueryParam("SKU") String SKU,
+-            @QueryParam("description") String description,
+-            @QueryParam("price") float price,
+-            @QueryParam("stock") int stock,
+-            @QueryParam("categoryId") int categoryId) {
+-
+-        return productService.addProduct(name, SKU, description, price, stock, categoryId);
+-    }
+-
+-    @DELETE
+-    @Path("deleteById")
+-    @Consumes(MediaType.APPLICATION_JSON)
+-    @Produces(MediaType.APPLICATION_JSON)
+-    @Transactional
+-    public ProductDTO deleteById(@QueryParam("id") int id) {
+-        return productService.deleteById(id);
+-    }
+-
+-    @PUT
+-    @Path("updateById")
+-    @Consumes(MediaType.APPLICATION_JSON)
+-    @Produces(MediaType.APPLICATION_JSON)
+-    @Transactional
+-    public ProductDTO updateById(
+-            @QueryParam("id") int id,
+-            @QueryParam("name") String name,
+-            @QueryParam("SKU") String SKU,
+-            @QueryParam("description") String description,
+-            @QueryParam("price") float price,
+-            @QueryParam("stock") int stock,
+-            @QueryParam("categoryId") int categoryId
+-    ) {
+-        return productService.updateById(id, name, SKU, description, price, stock, categoryId);
+-    }
+-}
+Index: src/main/java/importxmlfile/dto/categorydto/CategoriesDTO.java
+===================================================================
+diff --git a/src/main/java/importxmlfile/dto/categorydto/CategoriesDTO.java b/src/main/java/importxmlfile/dto/categorydto/CategoriesDTO.java
+deleted file mode 100644
+--- a/src/main/java/importxmlfile/dto/categorydto/CategoriesDTO.java	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
++++ /dev/null	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
+@@ -1,23 +0,0 @@
+-package importxmlfile.dto.categorydto;
+-
+-import javax.xml.bind.annotation.XmlAccessType;
+-import javax.xml.bind.annotation.XmlAccessorType;
+-import javax.xml.bind.annotation.XmlElement;
+-import javax.xml.bind.annotation.XmlRootElement;
+-import java.util.List;
+-
+-@XmlRootElement(name = "Categories")
+-@XmlAccessorType(XmlAccessType.FIELD)
+-public class CategoriesDTO {
+-
+-    @XmlElement(name = "Category")
+-    private List<CategoryDTO> categoryDTOList;
+-
+-    public List<CategoryDTO> getCategoryDTOList() {
+-        return categoryDTOList;
+-    }
+-
+-    public void setCategoryDTOList(List<CategoryDTO> categoryDTOList) {
+-        this.categoryDTOList = categoryDTOList;
+-    }
+-}
+Index: src/main/java/Invoice/dto/InvoiceDTO.java
+===================================================================
+diff --git a/src/main/java/Invoice/dto/InvoiceDTO.java b/src/main/java/Invoice/dto/InvoiceDTO.java
+deleted file mode 100644
+--- a/src/main/java/Invoice/dto/InvoiceDTO.java	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
++++ /dev/null	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
+@@ -1,22 +0,0 @@
+-package Invoice.dto;
+-
+-import Invoice.model.InvoiceModel;
+-import OrderDetails.dto.OrderDetailsDTO;
+-import lombok.Getter;
+-import lombok.NoArgsConstructor;
+-import lombok.Setter;
+-
+-@NoArgsConstructor
+-@Getter @Setter
+-public class InvoiceDTO {
+-
+-    private int id;
+-    private OrderDetailsDTO orderDetailsDTO;
+-
+-    public InvoiceDTO(InvoiceModel invoiceModel) {
+-        this.id = invoiceModel.getId();
+-        if (invoiceModel.getOrderDetailsModel() != null) {
+-            this.orderDetailsDTO = new OrderDetailsDTO(invoiceModel.getOrderDetailsModel());
+-        }
+-    }
+-}
+Index: src/main/java/OrderItems/controller/OrderItemsController.java
+===================================================================
+diff --git a/src/main/java/OrderItems/controller/OrderItemsController.java b/src/main/java/OrderItems/controller/OrderItemsController.java
+deleted file mode 100644
+--- a/src/main/java/OrderItems/controller/OrderItemsController.java	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
++++ /dev/null	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
+@@ -1,96 +0,0 @@
+-package OrderItems.controller;
+-
+-import OrderItems.dto.OrderItemsDTO;
+-import OrderItems.service.OrderItemsService;
+-import javax.enterprise.context.ApplicationScoped;
+-import javax.inject.Inject;
+-import javax.transaction.Transactional;
+-import javax.ws.rs.*;
+-import javax.ws.rs.core.MediaType;
+-import java.util.List;
+-
+-@ApplicationScoped
+-@Path("orderItems")
+-public class OrderItemsController {
+-
+-    @Inject
+-    OrderItemsService orderItemsService;
+-
+-    @GET
+-    @Path("allOrderItems")
+-    @Produces(MediaType.APPLICATION_JSON)
+-    @Consumes(MediaType.APPLICATION_JSON)
+-    @Transactional
+-    public List<OrderItemsDTO> getAllOrderItems() {
+-        return orderItemsService.getOrderItemsModel();
+-    }
+-
+-    // Here should get the data based on the order ID.
+-    @GET
+-    @Path("allOrderItemsById")
+-    @Produces(MediaType.APPLICATION_JSON)
+-    @Consumes(MediaType.APPLICATION_JSON)
+-    @Transactional
+-    public OrderItemsDTO getAllOrderItemsByCustomerId(@QueryParam("customerId") int customerId) {
+-        return orderItemsService.getOrderItemsById(customerId);
+-    }
+-
+-    // In this function I should return specific things.
+-    @GET
+-    @Path("theItemsByCustomerId")
+-    @Produces(MediaType.APPLICATION_JSON)
+-    @Consumes(MediaType.APPLICATION_JSON)
+-    @Transactional
+-    public List<Object[]> getOrderItemsModelByCustomerId(@QueryParam("customerId") int customerId) {
+-        return orderItemsService.getOrderItemsModelByCustomerId(customerId);
+-    }
+-
+-    @POST
+-    @Path("makeAnOrder")
+-    @Consumes(MediaType.APPLICATION_JSON)
+-    @Produces(MediaType.APPLICATION_JSON)
+-    @Transactional
+-    public OrderItemsDTO makeAnOrder(
+-            @QueryParam("quantity") int quantity,
+-            @QueryParam("productId") int productId,
+-            @QueryParam("orderDetailsId") int orderDetailsId
+-    ) {
+-        return orderItemsService.makeOrderItemsDTO(quantity, productId, orderDetailsId);
+-    }
+-
+-    // Here should Delete the data based on the order ID.
+-    @DELETE
+-    @Path("deleteOrderItemsById")
+-    @Consumes(MediaType.APPLICATION_JSON)
+-    @Produces(MediaType.APPLICATION_JSON)
+-    @Transactional
+-    public OrderItemsDTO deleteOrderItemsById(@QueryParam("id") int id) {
+-        return orderItemsService.deleteOrderItemsById(id);
+-    }
+-
+-    // Also I should delete based on details id
+-    @DELETE
+-    @Path("deleteOrderItemsByOrderDetailsId")
+-    @Produces(MediaType.APPLICATION_JSON)
+-    @Consumes(MediaType.APPLICATION_JSON)
+-    @Transactional
+-    public List<OrderItemsDTO> deleteOrderItemsByOrderDetailsId(@QueryParam("orderDetailsId") int id) {
+-        return orderItemsService.deleteOrderItemsByOrderDetailsId(id);
+-    }
+-
+-    // Here should Update the data based on the order ID.
+-    @PUT
+-    @Path("updateOrderItemsById")
+-    @Consumes(MediaType.APPLICATION_JSON)
+-    @Produces(MediaType.APPLICATION_JSON)
+-    @Transactional
+-    public OrderItemsDTO updateOrderItemsById(
+-            @QueryParam("id") int id,
+-            @QueryParam("quantity") int quantity,
+-            @QueryParam("productId") int productId,
+-            @QueryParam("orderDetailsId") int orderDetailsId
+-    ) {
+-       return orderItemsService.updateOrderItemsById(id, quantity, productId, orderDetailsId);
+-    }
+-
+-}
+Index: src/main/java/Product/model/ProductModel.java
+===================================================================
+diff --git a/src/main/java/Product/model/ProductModel.java b/src/main/java/Product/model/ProductModel.java
+deleted file mode 100644
+--- a/src/main/java/Product/model/ProductModel.java	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
++++ /dev/null	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
+@@ -1,25 +0,0 @@
+-package Product.model;
+-
+-import Category.model.CategoryModel;
+-import lombok.Getter;
+-import lombok.Setter;
+-import javax.persistence.*;
+-
+-@Entity
+-@Table(name = "Product")
+-@Getter @Setter
+-public class ProductModel {
+-
+-    @Id
+-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+-    private int id;
+-    private String name;
+-    private String SKU;
+-    private String description;
+-    private float price;
+-    private int stock;
+-
+-    @ManyToOne
+-    @JoinColumn(name = "categoryId")
+-    private CategoryModel category;
+-}
+Index: src/main/java/Invoice/service/InvoiceService.java
+===================================================================
+diff --git a/src/main/java/Invoice/service/InvoiceService.java b/src/main/java/Invoice/service/InvoiceService.java
+deleted file mode 100644
+--- a/src/main/java/Invoice/service/InvoiceService.java	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
++++ /dev/null	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
+@@ -1,39 +0,0 @@
+-package Invoice.service;
+-
+-import Invoice.dto.InvoiceDTO;
+-import Invoice.repository.InvoiceRepository;
+-import javax.enterprise.context.ApplicationScoped;
+-import javax.inject.Inject;
+-import java.util.List;
+-
+-@ApplicationScoped
+-public class InvoiceService {
+-
+-    @Inject
+-    InvoiceRepository invoiceRepository;
+-
+-    public InvoiceDTO getInvoiceById(int invoiceId) {
+-        return new InvoiceDTO(invoiceRepository.getInvoiceModelById(invoiceId));
+-    }
+-
+-    public InvoiceDTO getInvoiceByOrderDetailsIdId(int orderDetailsId) {
+-        return new InvoiceDTO(invoiceRepository.getInvoiceByOrderDetailsId(orderDetailsId));
+-    }
+-
+-    public List<Object[]> createInvoice(int orderDetailsId) {
+-        return invoiceRepository.createInvoice(orderDetailsId);
+-    }
+-
+-    public InvoiceDTO deleteInvoiceId(int id) {
+-        return new InvoiceDTO(invoiceRepository.deleteInvoiceId(id));
+-    }
+-
+-    public InvoiceDTO deleteInvoiceByOrderDetailsId(int orderDetailsId) {
+-        return new InvoiceDTO(invoiceRepository.deleteInvoiceByOrderDetailsId(orderDetailsId));
+-    }
+-
+-    public InvoiceDTO updateInvoiceById(int id, int orderDetailsId) {
+-        return new InvoiceDTO(invoiceRepository.updateInvoiceById(id, orderDetailsId));
+-    }
+-
+-}
+Index: src/main/java/Invoice/model/InvoiceModel.java
+===================================================================
+diff --git a/src/main/java/Invoice/model/InvoiceModel.java b/src/main/java/Invoice/model/InvoiceModel.java
+deleted file mode 100644
+--- a/src/main/java/Invoice/model/InvoiceModel.java	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
++++ /dev/null	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
+@@ -1,25 +0,0 @@
+-package Invoice.model;
+-
+-import OrderDetails.model.OrderDetailsModel;
+-import lombok.Getter;
+-import lombok.NoArgsConstructor;
+-import lombok.Setter;
+-import lombok.ToString;
+-
+-import javax.persistence.*;
+-
+-@Entity
+-@Table(name = "Invoice")
+-@NoArgsConstructor
+-@Getter @Setter
+-@ToString
+-public class InvoiceModel {
+-
+-    @Id
+-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+-    private int id;
+-
+-    @ManyToOne
+-    @JoinColumn(name = "orderDetailsId", nullable = false)
+-    private OrderDetailsModel orderDetailsModel;
+-}
+Index: src/main/java/Category/controller/CategoryController.java
+===================================================================
+diff --git a/src/main/java/Category/controller/CategoryController.java b/src/main/java/Category/controller/CategoryController.java
+deleted file mode 100644
+--- a/src/main/java/Category/controller/CategoryController.java	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
++++ /dev/null	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
+@@ -1,74 +0,0 @@
+-package Category.controller;
+-
+-import Category.dto.CategoryDTO;
+-import Category.service.CategoryService;
+-import javax.enterprise.context.ApplicationScoped;
+-import javax.inject.Inject;
+-import javax.transaction.Transactional;
+-import javax.ws.rs.*;
+-import javax.ws.rs.core.MediaType;
+-import java.util.List;
+-
+-@ApplicationScoped
+-@Path("category")
+-public class CategoryController {
+-
+-    @Inject
+-    CategoryService categoryService;
+-
+-    @GET
+-    @Path("AllTheCategory")
+-    @Transactional
+-    public List<CategoryDTO> getAllCategory() {
+-        return categoryService.getAllCategory();
+-    }
+-
+-    @GET
+-    @Path("CategoryById")
+-    @Transactional
+-    @Produces(MediaType.APPLICATION_JSON)
+-    @Consumes(MediaType.APPLICATION_JSON)
+-    public CategoryDTO getCategoryById(@QueryParam("id") int id) {
+-        return categoryService.getCategoryById(id);
+-    }
+-
+-    @GET
+-    @Path("CategoryByName")
+-    @Transactional
+-    @Produces(MediaType.APPLICATION_JSON)
+-    @Consumes(MediaType.APPLICATION_JSON)
+-    public CategoryDTO getCategoryByName(@QueryParam("name") String name) {
+-        return categoryService.getCategoryByName(name);
+-    }
+-
+-    @POST
+-    @Path("createCategory")
+-    @Transactional
+-    @Produces(MediaType.APPLICATION_JSON)
+-    @Consumes(MediaType.APPLICATION_JSON)
+-    public CategoryDTO createCategory(@QueryParam("name") String name) {
+-        return categoryService.createCategory(name);
+-    }
+-
+-    @DELETE
+-    @Path("deleteCategory")
+-    @Transactional
+-    @Produces(MediaType.APPLICATION_JSON)
+-    @Consumes(MediaType.APPLICATION_JSON)
+-    public CategoryDTO deleteCategoryById(@QueryParam("id") int id) {
+-        return categoryService.deleteCategoryById(id);
+-    }
+-
+-    @PUT
+-    @Path("updateCategory")
+-    @Transactional
+-    @Produces(MediaType.APPLICATION_JSON)
+-    @Consumes(MediaType.APPLICATION_JSON)
+-    public CategoryDTO updateCategory(
+-            @QueryParam("id") int id,
+-            @QueryParam("name") String name) {
+-        return categoryService.updateCategoryById(id, name);
+-    }
+-
+-
+-}
+Index: src/main/java/OrderItems/repository/OrderItemsRepository.java
+===================================================================
+diff --git a/src/main/java/OrderItems/repository/OrderItemsRepository.java b/src/main/java/OrderItems/repository/OrderItemsRepository.java
+deleted file mode 100644
+--- a/src/main/java/OrderItems/repository/OrderItemsRepository.java	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
++++ /dev/null	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
+@@ -1,173 +0,0 @@
+-package OrderItems.repository;
+-
+-import Invoice.repository.InvoiceRepository;
+-import OrderDetails.model.OrderDetailsModel;
+-import OrderItems.model.OrderItemsModel;
+-import Product.model.ProductModel;
+-
+-import javax.enterprise.context.ApplicationScoped;
+-import javax.inject.Inject;
+-import javax.persistence.*;
+-import java.util.List;
+-import java.util.stream.Collectors;
+-
+-@ApplicationScoped
+-public class OrderItemsRepository {
+-
+-    @Inject
+-    EntityManager entityManager;
+-
+-    @Inject
+-    InvoiceRepository invoiceRepository;
+-
+-/*
+-    @Inject
+-    EntityManagerFactory entityManagerFactory;
+-
+-    @Inject
+-    EntityTransaction entityTransaction;
+-
+-    @Inject
+-    Persistence persistence;
+-*/
+-
+-    public List<OrderItemsModel> getOrderItemsModel() {
+-        return entityManager.createQuery("SELECT w FROM OrderItemsModel w", OrderItemsModel.class).getResultList();
+-    }
+-
+-    public OrderItemsModel getOrderItemsById(int id) {
+-        return entityManager.find(OrderItemsModel.class, id);
+-    }
+-
+-    public List<Object[]> getOrderItemsModelByCustomerId(int CustomerId){
+-        List<Object[]> result =  entityManager.createQuery("SELECT c.id, c.firstName, c.lastName, c.phoneNumber, " +
+-                "p.id, p.name, p.description, p.price, cart.quantity " +
+-                "from CartModel cart " +
+-                "Join cart.customerModel c " +
+-                "Join cart.productModel p " +
+-                "where c.id = :CustomerId ", Object[].class).setParameter("CustomerId", CustomerId).getResultList();
+-
+-        for (Object[] row : result) {
+-            int id = (Integer) row[0];
+-            String firstName = (String) row[1];
+-            String lastName = (String) row[2];
+-            String phoneNumber = (String) row[3];
+-            int productId = (Integer) row[4];
+-            String productName = (String) row[5];
+-            String description = (String) row[6];
+-            float price = (Float) row[7];
+-            int quantity = (Integer) row[8];
+-            System.out.println(id + " " + firstName + " " + lastName + " " + phoneNumber + " " + productName + " " + productId + " " + description + " " + price + " " + quantity);
+-        }
+-        return result;
+-    }
+-
+-    // Here should I get the customer, product, and the order details of each product.
+-    public OrderItemsModel makeAnOrder(int quantity, int productId, int orderDetailsId) {
+-        OrderItemsModel orderItemsModel = new OrderItemsModel();
+-        orderItemsModel.setQuantity(quantity);
+-        if (productId != 0) {
+-            ProductModel productModel = getProductModelById(productId);
+-            orderItemsModel.setProduct(productModel);
+-        }
+-        if (orderDetailsId != 0) {
+-            OrderDetailsModel orderDetailsModel = getOrderDetailsById(orderDetailsId);
+-            orderItemsModel.setOrderDetails(orderDetailsModel);
+-        }
+-        entityManager.persist(orderItemsModel);
+-        changeOnProductQuantity(productId, quantity);
+-        invoiceRepository.createInvoice(orderDetailsId);
+-
+-        // Get the customer Id then send it to the orderDetailsRepo, to make an order
+-
+-        return orderItemsModel;
+-    }
+-
+-    public ProductModel getProductModelById(int productId) {
+-        return entityManager.find(ProductModel.class, productId);
+-    }
+-    public OrderDetailsModel getOrderDetailsById(int orderId) {
+-        return entityManager.find(OrderDetailsModel.class, orderId);
+-    }
+-
+-
+-    // Should check on the product Id and customer id is the same, the quantity should not duplicate.
+-
+-
+-    // When they make a post to make an order, and the merge should be in the function when call it.
+-    // If here make an update order, it's should calculate the update quantity is more than or less than
+-    // if more than should delete the addtions quantity.
+-    // But if the update quantity less than the order quantity should make a add on the quantity on the database.
+-    public int changeOnProductQuantity(int productId, int quantityItems) {
+-        int Quantity = entityManager.createQuery("SELECT q.stock FROM ProductModel q WHERE q.id = :productId",
+-                Integer.class).setParameter("productId", productId).getSingleResult();
+-
+-        System.out.println("------------------------------- Before changes -------------------------------");
+-        System.out.println("Quantity in the database " + Quantity + " And Quantity that the user wants " + quantityItems);
+-        System.out.println("------------------------------------------------------------------------------");
+-
+-        if (Quantity < quantityItems) {
+-            System.out.println("There is no enough of the items in the database");
+-            return -1;
+-        }
+-        int  newQuantity = Quantity - quantityItems;
+-
+-        ProductModel productModel = entityManager.find(ProductModel.class, productId);
+-        productModel.setStock(newQuantity);
+-        entityManager.merge(productModel);
+-
+-        System.out.println("------------------------------- After changes -------------------------------");
+-        System.out.println("Quantity in the database " + newQuantity + " And Quantity that the user wants " + quantityItems);
+-        System.out.println("-----------------------------------------------------------------------------");
+-
+-        return newQuantity;
+-    }
+-
+-    public OrderItemsModel deleteOrderItemsById(int id) {
+-        OrderItemsModel orderItemsModel = getOrderItemsById(id);
+-        entityManager.remove(orderItemsModel);
+-        return orderItemsModel;
+-    }
+-
+-    public List<OrderItemsModel> deleteOrderItemsByOrderDetailsId(int orderDetailsId) {
+-        List<Object> objects = entityManager.createQuery("SELECT oi from OrderItemsModel oi JOIN " +
+-                "OrderDetailsModel od ON oi.orderDetails.id = od.id where oi.orderDetails.id = :orderDetailsId", Object.class)
+-                .setParameter("orderDetailsId", orderDetailsId).getResultList();
+-        for (Object object : objects) {
+-            OrderDetailsModel orderDetailsModel = (OrderDetailsModel) object;
+-            entityManager.remove(object);
+-        }
+-        return objects.stream().map(OrderItemsModel.class::cast).collect(Collectors.toList());
+-    }
+-
+-
+-    public OrderItemsModel updateOrderItemsById(int id, int newQuantity, int productId, int orderDetailsId) {
+-        OrderItemsModel orderItemsModel = getOrderItemsById(id);
+-
+-        int oldQuantity = entityManager.createQuery("Select oi.quantity from OrderItemsModel oi where oi.id = :id", Integer.class).setParameter("id", id).getSingleResult();
+-
+-        if (newQuantity > oldQuantity) {
+-            int newQuantities = newQuantity - oldQuantity;
+-            int newDatabaseReqOfQuantity = oldQuantity - newQuantities;
+-            orderItemsModel.setQuantity(newDatabaseReqOfQuantity);
+-            changeOnProductQuantity(productId, newDatabaseReqOfQuantity);
+-        } else if (newQuantity < oldQuantity) {
+-            int newQuantities = oldQuantity - newQuantity;
+-            int newDatabaseReqOfQuantity = oldQuantity + newQuantities;
+-            orderItemsModel.setQuantity(newDatabaseReqOfQuantity);
+-            changeOnProductQuantity(productId, newDatabaseReqOfQuantity);
+-        }
+-
+-        if (productId != 0) {
+-            ProductModel productModel = getProductModelById(productId);
+-            orderItemsModel.setProduct(productModel);
+-        }
+-        if (orderDetailsId != 0) {
+-            OrderDetailsModel orderDetailsModel = getOrderDetailsById(orderDetailsId);
+-            orderItemsModel.setOrderDetails(orderDetailsModel);
+-        }
+-        entityManager.merge(orderItemsModel);
+-        return orderItemsModel;
+-    }
+-
+-}
+Index: src/main/java/Customer/model/CustomerModel.java
+===================================================================
+diff --git a/src/main/java/Customer/model/CustomerModel.java b/src/main/java/Customer/model/CustomerModel.java
+deleted file mode 100644
+--- a/src/main/java/Customer/model/CustomerModel.java	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
++++ /dev/null	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
+@@ -1,20 +0,0 @@
+-package Customer.model;
+-
+-import lombok.Getter;
+-import lombok.Setter;
+-import javax.persistence.*;
+-
+-@Entity
+-@Table(name = "Customer")
+-@Getter @Setter
+-public class CustomerModel {
+-
+-    @Id
+-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+-    private int id;
+-    private String firstName;
+-    private String lastName;
+-    private String email;
+-    private String address;
+-    private String phoneNumber;
+-}
+Index: src/main/java/Wishlist/repository/WishlistRepository.java
+===================================================================
+diff --git a/src/main/java/Wishlist/repository/WishlistRepository.java b/src/main/java/Wishlist/repository/WishlistRepository.java
+deleted file mode 100644
+--- a/src/main/java/Wishlist/repository/WishlistRepository.java	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
++++ /dev/null	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
+@@ -1,78 +0,0 @@
+-package Wishlist.repository;
+-
+-import Customer.model.CustomerModel;
+-import Product.model.ProductModel;
+-import Wishlist.dto.WishlistDTO;
+-import Wishlist.model.WishlistModel;
+-import javax.enterprise.context.ApplicationScoped;
+-import javax.inject.Inject;
+-import javax.persistence.EntityManager;
+-import java.util.List;
+-
+-@ApplicationScoped
+-public class WishlistRepository {
+-
+-    @Inject
+-    EntityManager entityManager;
+-
+-    public List<WishlistModel> getAllWishlist() {
+-        return entityManager.createQuery("SELECT c FROM WishlistModel c", WishlistModel.class).getResultList();
+-    }
+-
+-    public WishlistModel getWishlistModelById(int wishlistId) {
+-        return entityManager.find(WishlistModel.class, wishlistId);
+-    }
+-
+-    // Nested of return the list of objects (I can make the DTO for the Item that return from the client side and put the name and description)
+-    public List<Object[]> getAllWishlistFromTheCustomerId(int customerId) {
+-        return entityManager.createQuery("SELECT w.productID.name, w.productID.description FROM WishlistModel w WHERE w.customerID.id = :customerId", Object[].class)
+-                .setParameter("customerId", customerId).getResultList();
+-    }
+-
+-    public WishlistModel addToWishlist(int clientId, int productId) {
+-        if (clientId <= 0 || productId <= 0) {
+-            throw new IllegalArgumentException("Customer ID and Product ID must be positive");
+-        }
+-
+-        WishlistModel wishlistModel = new WishlistModel();
+-
+-        CustomerModel customerModel = getCustomerRefById(clientId);
+-        ProductModel productModel = getProductRefById(productId);
+-
+-        wishlistModel.setCustomerID(customerModel);
+-        wishlistModel.setProductID(productModel);
+-
+-
+-        System.out.println(wishlistModel.toString());
+-
+-        entityManager.persist(wishlistModel);
+-        return wishlistModel;
+-    }
+-
+-    public CustomerModel getCustomerRefById(int customerId) {
+-        return entityManager.getReference(CustomerModel.class, customerId);
+-    }
+-    public ProductModel getProductRefById(int productId) {
+-        return entityManager.getReference(ProductModel.class, productId);
+-    }
+-
+-    // For Admin
+-    public WishlistModel deleteWishlistById (int id) {
+-        WishlistModel wishlistModel = getWishlistModelById(id);
+-        entityManager.remove(wishlistModel);
+-        return wishlistModel;
+-    }
+-
+-    // For Client
+-    public WishlistModel deleteWishlistByCustomerIdAndProductId(int customerId, int productId) {
+-        WishlistModel wishlistModel = entityManager.createQuery("SELECT w from WishlistModel w where w.customerID.id = :customerId AND w.productID.id = :productId", WishlistModel.class)
+-                .setParameter("customerId", customerId)
+-                .setParameter("productId", productId)
+-                .getSingleResult();
+-        if (wishlistModel == null) {
+-            throw new IllegalArgumentException("Customer ID and Product ID not found");
+-        }
+-        entityManager.remove(wishlistModel);
+-        return wishlistModel;
+-    }
+-}
+Index: src/main/java/Customer/controller/CRUDCustomerContrller.java
+===================================================================
+diff --git a/src/main/java/Customer/controller/CRUDCustomerContrller.java b/src/main/java/Customer/controller/CRUDCustomerContrller.java
+deleted file mode 100644
+--- a/src/main/java/Customer/controller/CRUDCustomerContrller.java	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
++++ /dev/null	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
+@@ -1,87 +0,0 @@
+-package Customer.controller;
+-
+-import Customer.dto.CustomerDTO;
+-import Customer.service.CRUDCustomerService;
+-import javax.enterprise.context.ApplicationScoped;
+-import javax.inject.Inject;
+-import javax.transaction.Transactional;
+-import javax.ws.rs.*;
+-import javax.ws.rs.core.MediaType;
+-import java.util.List;
+-
+-@ApplicationScoped
+-@Path("CRUD")
+-public class CRUDCustomerContrller {
+-
+-    @Inject
+-    CRUDCustomerService crudCustomerService;
+-
+-    @GET
+-    @Transactional
+-    @Path("AllTheCustomer")
+-    @Produces(MediaType.APPLICATION_JSON)
+-    public List<CustomerDTO> findAllTheCustomer() {
+-        return crudCustomerService.findAll();
+-    }
+-
+-    @GET
+-    @Transactional
+-    @Path("findById")
+-    @Consumes(MediaType.APPLICATION_JSON)
+-    @Produces(MediaType.APPLICATION_JSON)
+-    public CustomerDTO  findById(@QueryParam("id") int id) {
+-        return crudCustomerService.findById(id);
+-    }
+-
+-    @GET
+-    @Transactional
+-    @Path("findByEmail")
+-    @Consumes(MediaType.APPLICATION_JSON)
+-    @Produces(MediaType.APPLICATION_JSON)
+-    public CustomerDTO findByEmail(@QueryParam("email") String email) {
+-        return crudCustomerService.findByEmail(email);
+-    }
+-
+-    @POST
+-    @Transactional
+-    @Path("addCustomer")
+-    @Consumes(MediaType.APPLICATION_JSON)
+-    @Produces(MediaType.APPLICATION_JSON)
+-    public CustomerDTO addCustomer(
+-            @QueryParam("firstName") String firstName,
+-            @QueryParam("lastName") String lastName,
+-            @QueryParam("email") String email,
+-            @QueryParam("address") String address,
+-            @QueryParam("phoneNumber") String phoneNumber
+-    ) {
+-        return crudCustomerService.addCustomer(firstName, lastName, email, address, phoneNumber);
+-    }
+-
+-    @PUT
+-    @Transactional
+-    @Path("updateCustomer")
+-    @Consumes(MediaType.APPLICATION_JSON)
+-    @Produces(MediaType.APPLICATION_JSON)
+-    public CustomerDTO updateCustomer(
+-            @QueryParam("id") int id,
+-            @QueryParam("firstName") String firstName,
+-            @QueryParam("lastName") String lastName,
+-            @QueryParam("email") String email,
+-            @QueryParam("address") String address,
+-            @QueryParam("phoneNumber") String phoneNumber
+-    ) {
+-        if (id == 0) {
+-            throw new WebApplicationException("There is no ID");
+-        }
+-        return crudCustomerService.updateCustomer(id, firstName, lastName, email, address, phoneNumber);
+-    }
+-
+-    @DELETE
+-    @Transactional
+-    @Path("deleteCustomer")
+-    @Consumes(MediaType.APPLICATION_JSON)
+-    @Produces(MediaType.APPLICATION_JSON)
+-    public CustomerDTO deleteCustomer(@QueryParam("id") int id) {
+-        return crudCustomerService.deleteCustomer(id);
+-    }
+-}
+Index: src/main/java/importxmlfile/dto/productdto/ProductsDTO.java
+===================================================================
+diff --git a/src/main/java/importxmlfile/dto/productdto/ProductsDTO.java b/src/main/java/importxmlfile/dto/productdto/ProductsDTO.java
+deleted file mode 100644
+--- a/src/main/java/importxmlfile/dto/productdto/ProductsDTO.java	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
++++ /dev/null	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
+@@ -1,23 +0,0 @@
+-package importxmlfile.dto.productdto;
+-
+-
+-import javax.xml.bind.annotation.XmlAccessType;
+-import javax.xml.bind.annotation.XmlAccessorType;
+-import javax.xml.bind.annotation.XmlElement;
+-import javax.xml.bind.annotation.XmlRootElement;
+-import java.util.List;
+-
+-@XmlRootElement(name = "Products")
+-@XmlAccessorType(XmlAccessType.FIELD)
+-public class ProductsDTO {
+-
+-    @XmlElement(name = "Product")
+-    private List<ProductDTO> productDTO;
+-
+-    public List<ProductDTO> getProductDTO() {
+-        return productDTO;
+-    }
+-    public void setProductDTO(List<ProductDTO> productDTO) {
+-        this.productDTO = productDTO;
+-    }
+-}
+Index: src/main/java/Wishlist/model/WishlistModel.java
+===================================================================
+diff --git a/src/main/java/Wishlist/model/WishlistModel.java b/src/main/java/Wishlist/model/WishlistModel.java
+deleted file mode 100644
+--- a/src/main/java/Wishlist/model/WishlistModel.java	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
++++ /dev/null	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
+@@ -1,30 +0,0 @@
+-package Wishlist.model;
+-
+-import Customer.model.CustomerModel;
+-import Product.model.ProductModel;
+-import lombok.Getter;
+-import lombok.NoArgsConstructor;
+-import lombok.Setter;
+-import lombok.ToString;
+-
+-import javax.persistence.*;
+-
+-@Entity
+-@Table(name = "Wishlist")
+-@NoArgsConstructor
+-@Getter @Setter
+-@ToString
+-public class WishlistModel {
+-
+-    @Id
+-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+-    private int id;
+-
+-    @ManyToOne
+-    @JoinColumn(name = "productID")
+-    private ProductModel productID;
+-
+-    @ManyToOne
+-    @JoinColumn(name = "customerID")
+-    private CustomerModel customerID;
+-}
+Index: src/main/java/OrderDetails/controller/OrderDetailsController.java
+===================================================================
+diff --git a/src/main/java/OrderDetails/controller/OrderDetailsController.java b/src/main/java/OrderDetails/controller/OrderDetailsController.java
+deleted file mode 100644
+--- a/src/main/java/OrderDetails/controller/OrderDetailsController.java	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
++++ /dev/null	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
+@@ -1,97 +0,0 @@
+-package OrderDetails.controller;
+-
+-import OrderDetails.dto.OrderDetailsDTO;
+-import OrderDetails.service.OrderDetailsService;
+-import javax.enterprise.context.ApplicationScoped;
+-import javax.inject.Inject;
+-import javax.transaction.Transactional;
+-import javax.ws.rs.*;
+-import javax.ws.rs.core.MediaType;
+-import java.util.List;
+-
+-@ApplicationScoped
+-@Path("orderDetails")
+-public class OrderDetailsController {
+-
+-    @Inject
+-    OrderDetailsService orderDetailsService;
+-
+-    @Transactional
+-    @Path("getAllOrders")
+-    @Produces(MediaType.APPLICATION_JSON)
+-    @Consumes(MediaType.APPLICATION_JSON)
+-    @GET
+-    public List<Object[]> getAllOrderDetails() {
+-        return orderDetailsService.getOrderDetails();
+-    }
+-
+-    @Transactional
+-    @Path("orderById")
+-    @Produces(MediaType.APPLICATION_JSON)
+-    @GET
+-    public OrderDetailsDTO getOrderDetailsById(@QueryParam("id") int id) {
+-        return orderDetailsService.getOrderDetailsByOrderId(id);
+-    }
+-
+-    @Transactional
+-    @Path("getOrderByCustomerId")
+-    @Produces(MediaType.APPLICATION_JSON)
+-    @Consumes(MediaType.APPLICATION_JSON)
+-    @GET
+-    public OrderDetailsDTO getOrderByCustomerId(@QueryParam("customerId") int customerId) {
+-        return orderDetailsService.getOrderDetailsByCustomerId(customerId);
+-    }
+-
+-    @Path("createOrderDetails")
+-    @Transactional
+-    @POST
+-    @Consumes(MediaType.APPLICATION_JSON)
+-    @Produces(MediaType.APPLICATION_JSON)
+-    public OrderDetailsDTO createOrderDetails(@QueryParam("customerId") int customerId) {
+-        return orderDetailsService.createOrderDetails(customerId);
+-    }
+-
+-
+-    // To Success the Delete should also make the delete in order items, and invoice because them have a order det id.
+-    @DELETE
+-    @Path("deleteOrderDetails")
+-    @Transactional
+-    @Produces(MediaType.APPLICATION_JSON)
+-    @Consumes(MediaType.APPLICATION_JSON)
+-    public OrderDetailsDTO deleteOrderDetails(@QueryParam("id") int id) {
+-        return orderDetailsService.deleteOrderDetails(id);
+-    }
+-
+-    @DELETE
+-    @Path("deleteOrderDetailsByCustomerId")
+-    @Transactional
+-    @Produces(MediaType.APPLICATION_JSON)
+-    @Consumes(MediaType.APPLICATION_JSON)
+-    public OrderDetailsDTO deleteOrderDetailsByCustomerId(@QueryParam("customerId") int customerId) {
+-        return orderDetailsService.deleteOrderDetailsByCustomerId(customerId);
+-    }
+-    // _______________________________________________________________________________________________________________
+-
+-    @PUT
+-    @Path("updateOrderDet")
+-    @Transactional
+-    @Consumes(MediaType.APPLICATION_JSON)
+-    @Produces(MediaType.APPLICATION_JSON)
+-    public OrderDetailsDTO updateOrderDetails(
+-            @QueryParam("orderId") int orderId,
+-            @QueryParam("total") float total,
+-            @QueryParam("customerId") int customerId
+-            ) {
+-        return orderDetailsService.updateOrderDetails(orderId, total, customerId);
+-    }
+-
+-    @PUT
+-    @Path("updateOrderDetByCustomerId")
+-    @Transactional
+-    @Consumes(MediaType.APPLICATION_JSON)
+-    @Produces(MediaType.APPLICATION_JSON)
+-    public OrderDetailsDTO updateOrderDetailsByCustomerId(@QueryParam("customerId") int customerId, @QueryParam("total") float total) {
+-        return orderDetailsService.updateOrderDetailsByCustomerId(customerId, total);
+-    }
+-
+-}
+Index: src/main/java/Wishlist/controller/WishlistController.java
+===================================================================
+diff --git a/src/main/java/Wishlist/controller/WishlistController.java b/src/main/java/Wishlist/controller/WishlistController.java
+deleted file mode 100644
+--- a/src/main/java/Wishlist/controller/WishlistController.java	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
++++ /dev/null	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
+@@ -1,77 +0,0 @@
+-package Wishlist.controller;
+-
+-import Wishlist.dto.WishlistDTO;
+-import Wishlist.service.WishlistService;
+-import javax.enterprise.context.ApplicationScoped;
+-import javax.inject.Inject;
+-import javax.transaction.Transactional;
+-import javax.ws.rs.*;
+-import javax.ws.rs.core.MediaType;
+-import java.util.List;
+-
+-@ApplicationScoped
+-@Path("wishlist")
+-public class WishlistController {
+-
+-    @Inject
+-    WishlistService wishlistService;
+-
+-    @GET
+-    @Transactional
+-    @Produces(MediaType.APPLICATION_JSON)
+-    @Path("all")
+-    public List<WishlistDTO> getAllWishlist() {
+-        return wishlistService.allTheWishlists();
+-    }
+-
+-    @GET
+-    @Transactional
+-    @Produces(MediaType.APPLICATION_JSON)
+-    @Consumes(MediaType.APPLICATION_JSON)
+-    @Path("id")
+-    public WishlistDTO getWishlistById(@QueryParam("id") int id) {
+-        return wishlistService.getWishlistById(id);
+-    }
+-
+-    @GET
+-    @Transactional
+-    @Produces(MediaType.APPLICATION_JSON)
+-    @Path("customerId")
+-    public List<Object[]> getWishlistByCustomerId(@QueryParam("customerId") int customerID) {
+-        return wishlistService.getAllWishlistFromTheCustomerId(customerID);
+-    }
+-
+-    @POST
+-    @Transactional
+-    @Produces(MediaType.APPLICATION_JSON)
+-    @Consumes(MediaType.APPLICATION_JSON)
+-    @Path("addToWishlist")
+-    public WishlistDTO addToWishlist(
+-            @QueryParam("customerId") int customerId,
+-            @QueryParam("productId") int productId
+-    ) {
+-        return wishlistService.addToWishlist(customerId, productId);
+-    }
+-
+-    @DELETE
+-    @Transactional
+-    @Produces(MediaType.APPLICATION_JSON)
+-    @Consumes(MediaType.APPLICATION_JSON)
+-    @Path("deleteFromWishlist")
+-    public WishlistDTO deleteFromWishlist(@QueryParam("deleteById") int deleteById ) {
+-        return wishlistService.deleteWishlist(deleteById);
+-    }
+-
+-    @DELETE
+-    @Transactional
+-    @Produces(MediaType.APPLICATION_JSON)
+-    @Consumes(MediaType.APPLICATION_JSON)
+-    @Path("deleteWishlistByClientAndProductIds")
+-    public WishlistDTO deleteFromWishlistByClientIdAndProductId(
+-            @QueryParam("customerId") int deleteByCustomerId,
+-            @QueryParam("productId") int deleteByProductId
+-            ) {
+-        return wishlistService.deleteWishlistByCustomerIdAndProductId(deleteByCustomerId, deleteByProductId);
+-    }
+-
+-}
+Index: src/main/java/Category/repository/CategoryRepository.java
+===================================================================
+diff --git a/src/main/java/Category/repository/CategoryRepository.java b/src/main/java/Category/repository/CategoryRepository.java
+deleted file mode 100644
+--- a/src/main/java/Category/repository/CategoryRepository.java	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
++++ /dev/null	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
+@@ -1,48 +0,0 @@
+-package Category.repository;
+-
+-import Category.model.CategoryModel;
+-import javax.enterprise.context.ApplicationScoped;
+-import javax.inject.Inject;
+-import javax.persistence.EntityManager;
+-import java.util.List;
+-
+-@ApplicationScoped
+-public class CategoryRepository {
+-
+-    @Inject
+-    EntityManager entityManager;
+-
+-    public List<CategoryModel> getAllCategory() {
+-        List<CategoryModel> categoryModels = entityManager.createQuery("select c from CategoryModel c", CategoryModel.class).getResultList();
+-        return categoryModels;
+-    }
+-
+-    public CategoryModel getCategoryById(int id) {
+-        return entityManager.find(CategoryModel.class, id);
+-    }
+-
+-    public CategoryModel getCategoryByName(String name) {
+-        CategoryModel categoryModel = entityManager.createQuery("select c from CategoryModel c where c.name = :name", CategoryModel.class).setParameter("name", name).getSingleResult();
+-        return categoryModel;
+-    }
+-
+-    public CategoryModel createCategory (String name) {
+-        CategoryModel categoryModel = new CategoryModel();
+-        categoryModel.setName(name);
+-        entityManager.persist(categoryModel);
+-        return categoryModel;
+-    }
+-
+-    public CategoryModel deleteCategoryById(int id) {
+-        CategoryModel categoryModel = entityManager.find(CategoryModel.class, id);
+-        entityManager.remove(categoryModel);
+-        return categoryModel;
+-    }
+-
+-    public CategoryModel updateCategoryById(int id, String name) {
+-        CategoryModel categoryModel = entityManager.find(CategoryModel.class, id);
+-        categoryModel.setName(name);
+-        entityManager.merge(categoryModel);
+-        return categoryModel;
+-    }
+-}
+Index: src/main/java/department/service/DepartmentService.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/department/service/DepartmentService.java b/src/main/java/department/service/DepartmentService.java
+new file mode 100644
+--- /dev/null	(date 1746983612819)
++++ b/src/main/java/department/service/DepartmentService.java	(date 1746983612819)
+@@ -0,0 +1,38 @@
++package department.service;
++
++import department.dto.DepartmentDTO;
++import department.model.DepartmentModel;
++import department.repository.DepartmentRepository;
++import javax.enterprise.context.ApplicationScoped;
++import javax.inject.Inject;
++import java.util.List;
++import java.util.stream.Collectors;
++
++@ApplicationScoped
++public class DepartmentService {
++
++    @Inject
++    DepartmentRepository departmentRepository;
++
++    public List<DepartmentDTO> getAllDepartment() {
++        List<DepartmentModel> departmentModels = departmentRepository.getAllDepartment();
++        return departmentModels.stream().map(DepartmentDTO::new).collect(Collectors.toList());
++    }
++
++    public DepartmentDTO getDepartmentById(int id) {
++        return new DepartmentDTO(departmentRepository.getDepartmentById(id));
++    }
++
++    public DepartmentDTO addDepartment(int id, String name) {
++        return new DepartmentDTO(departmentRepository.addDepartment(id, name));
++    }
++
++    public DepartmentDTO updateDepartment(int id, String name) {
++        return new DepartmentDTO(departmentRepository.updateDepartment(id, name));
++    }
++
++    public DepartmentDTO deleteDepartmentById(int id) {
++        return new DepartmentDTO(departmentRepository.deleteDepartmentById(id));
++    }
++
++}
+Index: src/main/java/department/repository/DepartmentRepository.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/department/repository/DepartmentRepository.java b/src/main/java/department/repository/DepartmentRepository.java
+new file mode 100644
+--- /dev/null	(date 1747207695227)
++++ b/src/main/java/department/repository/DepartmentRepository.java	(date 1747207695227)
+@@ -0,0 +1,43 @@
++package department.repository;
++
++import department.model.DepartmentModel;
++import javax.enterprise.context.ApplicationScoped;
++import javax.inject.Inject;
++import javax.persistence.EntityManager;
++import java.util.List;
++
++@ApplicationScoped
++public class DepartmentRepository {
++
++    @Inject
++    EntityManager entityManager;
++
++    public List<DepartmentModel> getAllDepartment() {
++        return entityManager.createQuery("select d from DepartmentModel d", DepartmentModel.class).getResultList();
++    }
++
++    public DepartmentModel getDepartmentById(int id) {
++        return entityManager.find(DepartmentModel.class, id);
++    }
++
++    public DepartmentModel addDepartment(int id, String name) {
++        DepartmentModel departmentModel = new DepartmentModel();
++        departmentModel.setId(id);
++        departmentModel.setName(name);
++        entityManager.persist(departmentModel);
++        return departmentModel;
++    }
++
++    public DepartmentModel updateDepartment(int id, String name) {
++        DepartmentModel departmentModel = getDepartmentById(id);
++        departmentModel.setName(name);
++        entityManager.merge(departmentModel);
++        return departmentModel;
++    }
++
++    public DepartmentModel deleteDepartmentById(int id) {
++        DepartmentModel departmentModel = getDepartmentById(id);
++        entityManager.remove(departmentModel);
++        return departmentModel;
++    }
++}
+Index: src/main/java/department/dto/DepartmentDTO.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/department/dto/DepartmentDTO.java b/src/main/java/department/dto/DepartmentDTO.java
+new file mode 100644
+--- /dev/null	(date 1746978257497)
++++ b/src/main/java/department/dto/DepartmentDTO.java	(date 1746978257497)
+@@ -0,0 +1,19 @@
++package department.dto;
++
++import department.model.DepartmentModel;
++import lombok.Getter;
++import lombok.NoArgsConstructor;
++import lombok.Setter;
++
++@Getter @Setter
++@NoArgsConstructor
++public class DepartmentDTO {
++
++    private int id;
++    private String name;
++
++    public DepartmentDTO(DepartmentModel departmentModel) {
++        this.id = departmentModel.getId();
++        this.name = departmentModel.getName();
++    }
++}
+Index: src/main/java/department/model/DepartmentModel.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/department/model/DepartmentModel.java b/src/main/java/department/model/DepartmentModel.java
+new file mode 100644
+--- /dev/null	(date 1746982076874)
++++ b/src/main/java/department/model/DepartmentModel.java	(date 1746982076874)
+@@ -0,0 +1,18 @@
++package department.model;
++
++import lombok.AllArgsConstructor;
++import lombok.Getter;
++import lombok.NoArgsConstructor;
++import lombok.Setter;
++import javax.persistence.*;
++
++@Entity
++@Table(name = "Department")
++@Getter @Setter
++@NoArgsConstructor
++@AllArgsConstructor
++public class DepartmentModel {
++    @Id
++    private int id;
++    private String name;
++}
+Index: src/main/resources/application.properties
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>quarkus.http.port=9314\r\n\r\nquarkus.datasource.db-kind=mssql\r\nquarkus.datasource.username=sa\r\nquarkus.datasource.password=Aa123123123@@@\r\nquarkus.datasource.jdbc.url=jdbc:sqlserver://localhost:1433;databaseName=ECommerce\r\nquarkus.hibernate-orm.database.generation=update\r\nquarkus.hibernate-orm.log.sql=true\r\n\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>ISO-8859-1
+===================================================================
+diff --git a/src/main/resources/application.properties b/src/main/resources/application.properties
+--- a/src/main/resources/application.properties	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
++++ b/src/main/resources/application.properties	(date 1746977743082)
+@@ -1,9 +1,9 @@
+-quarkus.http.port=9314
++quarkus.http.port=9791
+ 
+ quarkus.datasource.db-kind=mssql
+ quarkus.datasource.username=sa
+ quarkus.datasource.password=Aa123123123@@@
+-quarkus.datasource.jdbc.url=jdbc:sqlserver://localhost:1433;databaseName=ECommerce
++quarkus.datasource.jdbc.url=jdbc:sqlserver://localhost:1433;databaseName=University
+ quarkus.hibernate-orm.database.generation=update
+ quarkus.hibernate-orm.log.sql=true
+ 
+Index: pom.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><project xmlns=\"http://maven.apache.org/POM/4.0.0\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\r\n  xsi:schemaLocation=\"http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd\">\r\n  <modelVersion>4.0.0</modelVersion>\r\n  <groupId>org.ecommerce</groupId>\r\n  <artifactId>ecommerce</artifactId>\r\n  <packaging>jar</packaging>\r\n  <version>1.0-SNAPSHOT</version>\r\n  <name>ecommerce Maven Webapp</name>\r\n  <url>http://maven.apache.org</url>\r\n\r\n\r\n    <properties>\r\n        <compiler-plugin.version>3.8.1</compiler-plugin.version>\r\n        <maven.compiler.parameters>true</maven.compiler.parameters>\r\n        <maven.compiler.source>11</maven.compiler.source>\r\n        <maven.compiler.target>11</maven.compiler.target>\r\n        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>\r\n        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>\r\n        <quarkus-plugin.version>1.13.1.Final</quarkus-plugin.version>\r\n        <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>\r\n        <quarkus.platform.group-id>io.quarkus</quarkus.platform.group-id>\r\n        <quarkus.platform.version>1.13.1.Final</quarkus.platform.version>\r\n        <surefire-plugin.version>3.0.0-M5</surefire-plugin.version>\r\n    </properties>\r\n\r\n    <dependencyManagement>\r\n        <dependencies>\r\n            <dependency>\r\n                <groupId>${quarkus.platform.group-id}</groupId>\r\n                <artifactId>${quarkus.platform.artifact-id}</artifactId>\r\n                <version>${quarkus.platform.version}</version>\r\n                <type>pom</type>\r\n                <scope>import</scope>\r\n            </dependency>\r\n        </dependencies>\r\n    </dependencyManagement>\r\n\r\n\r\n    <dependencies>\r\n        <dependency>\r\n            <groupId>io.quarkus</groupId>\r\n            <artifactId>quarkus-junit5</artifactId>\r\n            <scope>test</scope>\r\n        </dependency>\r\n\r\n        <dependency>\r\n            <groupId>io.rest-assured</groupId>\r\n            <artifactId>rest-assured</artifactId>\r\n            <scope>test</scope>\r\n        </dependency>\r\n\r\n        <dependency>\r\n            <groupId>io.quarkus</groupId>\r\n            <artifactId>quarkus-resteasy-jsonb</artifactId>\r\n        </dependency>\r\n\r\n        <dependency>\r\n            <groupId>io.quarkus</groupId>\r\n            <artifactId>quarkus-arc</artifactId>\r\n        </dependency>\r\n\r\n        <dependency>\r\n            <groupId>io.quarkus</groupId>\r\n            <artifactId>quarkus-resteasy</artifactId>\r\n        </dependency>\r\n\r\n        <dependency>\r\n            <groupId>io.quarkus</groupId>\r\n            <artifactId>quarkus-smallrye-openapi</artifactId>\r\n        </dependency>\r\n\r\n        <dependency>\r\n            <groupId>io.quarkus</groupId>\r\n            <artifactId>quarkus-rest-client</artifactId>\r\n        </dependency>\r\n\r\n        <dependency>\r\n            <groupId>io.quarkus</groupId>\r\n            <artifactId>quarkus-smallrye-fault-tolerance</artifactId>\r\n        </dependency>\r\n\r\n        <dependency>\r\n            <groupId>org.projectlombok</groupId>\r\n            <artifactId>lombok</artifactId>\r\n            <version>1.18.24</version>\r\n        </dependency>\r\n\r\n        <dependency>\r\n            <groupId>io.quarkus</groupId>\r\n            <artifactId>quarkus-hibernate-orm</artifactId>\r\n        </dependency>\r\n\r\n        <dependency>\r\n            <groupId>io.quarkus</groupId>\r\n            <artifactId>quarkus-jdbc-mssql</artifactId>\r\n        </dependency>\r\n\r\n        <dependency>\r\n            <groupId>io.quarkus</groupId>\r\n            <artifactId>quarkus-hibernate-orm-panache</artifactId>\r\n        </dependency>\r\n\r\n        <dependency>\r\n            <groupId>io.quarkus</groupId>\r\n            <artifactId>quarkus-spring-data-jpa</artifactId>\r\n        </dependency>\r\n\r\n\r\n    </dependencies>\r\n\r\n    <build>\r\n        <plugins>\r\n            <plugin>\r\n                <groupId>org.apache.maven.plugins</groupId>\r\n                <artifactId>maven-clean-plugin</artifactId>\r\n                <version>3.2.0</version>\r\n                <configuration>\r\n                    <retryOnError>true</retryOnError>\r\n                </configuration>\r\n            </plugin>\r\n            <plugin>\r\n                <groupId>io.quarkus</groupId>\r\n                <artifactId>quarkus-maven-plugin</artifactId>\r\n                <version>${quarkus-plugin.version}</version>\r\n                <extensions>true</extensions>\r\n                <configuration>\r\n                    <debug>9315</debug>\r\n                </configuration>\r\n                <executions>\r\n                    <execution>\r\n                        <goals>\r\n                            <goal>build</goal>\r\n                            <goal>generate-code</goal>\r\n                            <goal>generate-code-tests</goal>\r\n                        </goals>\r\n                    </execution>\r\n                </executions>\r\n            </plugin>\r\n        </plugins>\r\n    </build>\r\n\r\n    <profiles>\r\n        <profile>\r\n            <id>native</id>\r\n            <activation>\r\n                <property>\r\n                    <name>native</name>\r\n                </property>\r\n            </activation>\r\n            <build>\r\n                <plugins>\r\n                    <plugin>\r\n                        <artifactId>maven-failsafe-plugin</artifactId>\r\n                        <version>${surefire-plugin.version}</version>\r\n                        <executions>\r\n                            <execution>\r\n                                <goals>\r\n                                    <goal>integration-test</goal>\r\n                                    <goal>verify</goal>\r\n                                </goals>\r\n                                <configuration>\r\n                                    <systemPropertyVariables>\r\n                                        <native.image.path>${project.build.directory}/${project.build.finalName}-runner</native.image.path>\r\n                                        <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>\r\n                                        <maven.home>${maven.home}</maven.home>\r\n                                    </systemPropertyVariables>\r\n                                </configuration>\r\n                            </execution>\r\n                        </executions>\r\n                    </plugin>\r\n                </plugins>\r\n            </build>\r\n            <properties>\r\n                <quarkus.package.type>native</quarkus.package.type>\r\n            </properties>\r\n        </profile>\r\n    </profiles>\r\n\r\n</project>\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/pom.xml b/pom.xml
+--- a/pom.xml	(revision bbef3738982bf0871c0c8a20f5154c337c46038e)
++++ b/pom.xml	(date 1746977754610)
+@@ -1,11 +1,11 @@
+ <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+   <modelVersion>4.0.0</modelVersion>
+-  <groupId>org.ecommerce</groupId>
+-  <artifactId>ecommerce</artifactId>
++  <groupId>org.universitySystem</groupId>
++  <artifactId>universitySystem</artifactId>
+   <packaging>jar</packaging>
+   <version>1.0-SNAPSHOT</version>
+-  <name>ecommerce Maven Webapp</name>
++  <name>University System Maven Webapp</name>
+   <url>http://maven.apache.org</url>
+ 
+ 
+@@ -124,7 +124,7 @@
+                 <version>${quarkus-plugin.version}</version>
+                 <extensions>true</extensions>
+                 <configuration>
+-                    <debug>9315</debug>
++                    <debug>9793</debug>
+                 </configuration>
+                 <executions>
+                     <execution>
+Index: src/main/java/course/dto/CourseDTO.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/course/dto/CourseDTO.java b/src/main/java/course/dto/CourseDTO.java
+new file mode 100644
+--- /dev/null	(date 1746989308469)
++++ b/src/main/java/course/dto/CourseDTO.java	(date 1746989308469)
+@@ -0,0 +1,26 @@
++package course.dto;
++
++import course.model.CourseModel;
++import department.dto.DepartmentDTO;
++import lombok.Getter;
++import lombok.NoArgsConstructor;
++import lombok.Setter;
++
++@NoArgsConstructor
++@Getter @Setter
++public class CourseDTO {
++    private String name;
++    private boolean isActive;
++    private int numberOfHours;
++    private DepartmentDTO departmentId;
++
++    public CourseDTO(CourseModel course) {
++        this.name = course.getName();
++        this.isActive = course.isActive();
++        this.numberOfHours = course.getNumberOfHours();
++
++        if (course.getDepartmentId() != null) {
++            this.departmentId = new DepartmentDTO(course.getDepartmentId());
++        }
++    }
++}
+Index: src/main/java/department/controller/DepartmentController.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/department/controller/DepartmentController.java b/src/main/java/department/controller/DepartmentController.java
+new file mode 100644
+--- /dev/null	(date 1746982828148)
++++ b/src/main/java/department/controller/DepartmentController.java	(date 1746982828148)
+@@ -0,0 +1,63 @@
++package department.controller;
++
++import department.dto.DepartmentDTO;
++import department.service.DepartmentService;
++import javax.enterprise.context.ApplicationScoped;
++import javax.inject.Inject;
++import javax.transaction.Transactional;
++import javax.ws.rs.*;
++import javax.ws.rs.core.MediaType;
++import java.util.List;
++
++@ApplicationScoped
++@Path("departmentOperation")
++public class DepartmentController {
++
++    @Inject
++    DepartmentService departmentService;
++
++    @GET
++    @Path("allDepartments")
++    @Produces(MediaType.APPLICATION_JSON)
++    @Consumes(MediaType.APPLICATION_JSON)
++    @Transactional
++    public List<DepartmentDTO> getAllDepartment() {
++        return departmentService.getAllDepartment();
++    }
++
++    @GET
++    @Path("departmentById")
++    @Produces(MediaType.APPLICATION_JSON)
++    @Consumes(MediaType.APPLICATION_JSON)
++    @Transactional
++    public DepartmentDTO getDepartmentById(@QueryParam("id") int id) {
++        return departmentService.getDepartmentById(id);
++    }
++
++    @POST
++    @Path("addDepartment")
++    @Produces(MediaType.APPLICATION_JSON)
++    @Consumes(MediaType.APPLICATION_JSON)
++    @Transactional
++    public DepartmentDTO addDepartment(@QueryParam("id") int id, @QueryParam("name") String name) {
++        return departmentService.addDepartment(id, name);
++    }
++
++    @PUT
++    @Path("updateDepartmentById")
++    @Produces(MediaType.APPLICATION_JSON)
++    @Consumes(MediaType.APPLICATION_JSON)
++    @Transactional
++    public DepartmentDTO updateDepartmentById(@QueryParam("id") int id, @QueryParam("name") String name) {
++        return departmentService.updateDepartment(id, name);
++    }
++
++    @DELETE
++    @Path("deleteDepartmentById")
++    @Produces(MediaType.APPLICATION_JSON)
++    @Consumes(MediaType.APPLICATION_JSON)
++    @Transactional
++    public DepartmentDTO deleteDepartmentById(@QueryParam("id") int id) {
++        return departmentService.deleteDepartmentById(id);
++    }
++}

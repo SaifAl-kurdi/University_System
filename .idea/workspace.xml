@@ -1,0 +1,295 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="eef4a238-3c06-4f2b-9d6e-8e7aab97a2fd" name="Changes" comment="Last Update" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Class" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+    <option name="UPDATE_TYPE" value="REBASE" />
+  </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;SaifAl-kurdi&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/SaifAl-kurdi/BackEnd_E-Commerce-Using-Java-Quarkus.git&quot;,
+    &quot;accountId&quot;: &quot;e0c7b6e8-c8d2-4e65-94d3-8a42fc679567&quot;
+  }
+}</component>
+  <component name="KubernetesApiPersistence">{}</component>
+  <component name="KubernetesApiProvider">{
+  &quot;isMigrated&quot;: true
+}</component>
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="ProjectErrors" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 0
+}</component>
+  <component name="ProjectId" id="2uGyEHDTGQVpqwu6ijxH4k9oXBG" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Maven. [org.apache.maven.plugins:maven-archetype-plugin:RELEASE:generate].executor": "Run",
+    "Maven.User [clean,install].executor": "Run",
+    "Maven.User [io.quarkus:quarkus-maven-plugin:1.13.1.Final:dev].executor": "Run",
+    "Maven.ecommerce [clean,install].executor": "Run",
+    "Maven.ecommerce [io.quarkus:quarkus-maven-plugin:1.13.1.Final:dev].executor": "Run",
+    "Maven.universitySystem [clean,install].executor": "Run",
+    "Quarkus.User.executor": "Run",
+    "Quarkus.ecommerece.executor": "Run",
+    "Quarkus.universitySystem.executor": "Run",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "ignore.virus.scanning.warn.message": "true",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "C:/Users/SAmmar/Desktop/universitySystem/src/main/java/course",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "project.structure.last.edited": "Modules",
+    "project.structure.proportion": "0.0",
+    "project.structure.side.proportion": "0.0",
+    "run.code.analysis.last.selected.profile": "pProject Default",
+    "settings.editor.selected.configurable": "preferences.pluginManager",
+    "vue.rearranger.settings.migration": "true"
+  },
+  "keyToStringList": {
+    "DatabaseDriversLRU": [
+      "sqlserver"
+    ],
+    "com.intellij.ide.scratch.ScratchImplUtil$2/New Scratch File": [
+      "Properties"
+    ]
+  }
+}]]></component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\SAmmar\Desktop\universitySystem\src\main\java\course" />
+      <recent name="C:\Users\SAmmar\Desktop\universitySystem\src\main\java" />
+      <recent name="C:\Users\SAmmar\Desktop\ecommerce\src\main\java\importxmlfile" />
+      <recent name="C:\Users\SAmmar\Desktop\ecommerce\src\main\java\Invoice" />
+      <recent name="C:\Users\SAmmar\Desktop\ecommerce\src\main\java\OrderItems" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\SAmmar\Desktop\User\src\main\resources" />
+    </key>
+    <key name="MoveClassesOrPackagesDialog.RECENTS_KEY">
+      <recent name="" />
+    </key>
+  </component>
+  <component name="RunAnythingCache">
+    <option name="myCommands">
+      <command value="curl http://localhost:9871/users/phoneNumber=&quot;0796055236&quot;" />
+      <command value="curl http://localhost:9871/test" />
+      <command value="./mvnw clean install" />
+      <command value="curl -X GET &quot;http://localhost:9871/users/getByPhone?phoneNumber=0796055236&quot; -H &quot;Accept: application/json&quot; " />
+      <command value="curl -X GET &quot;http://localhost:9875/users/getByPhone?phoneNumber=0796055236&quot; -H &quot;Accept: application/json&quot; " />
+      <command value="curl -v -X GET &quot;http://localhost:9875/users/getByPhone?phoneNumber=0796055236&quot; -H &quot;Accept: application/json&quot;" />
+      <command value="curl -X GET &quot;http://localhost:9875/users/getByPhone?phoneNumber=0796055236&quot; -H &quot;Accept: application/json&quot;" />
+      <command value="curl -X GET &quot;http://localhost:9878/users/getByPhone?phoneNumber=0796055236&quot; -H &quot;Accept: application/json&quot;" />
+      <command value="curl http://localhost:9878/test" />
+      <command value="curl -v -X GET &quot;http://localhost:9878/users?phoneNumber=0796055236&quot; -H &quot;Accept: application/json&quot;" />
+      <command value="curl -v -X GET &quot;http://localhost:9878/users/getByPhone?phoneNumber=0796055236&quot; -H &quot;Accept: application/json&quot;" />
+      <command value="curl -X POST &quot;http://localhost:9878/addUser?firstName=John&amp;lastName=Doe&amp;email=john.doe@example.com&amp;phoneNumber=0796055236&quot; -H &quot;Content-Type: application/json&quot;" />
+      <command value="curl -X -v POST &quot;http://localhost:9878/addUser?firstName=John&amp;lastName=Doe&amp;email=john.doe@example.com&amp;phoneNumber=0796055236&quot; -H &quot;Content-Type: application/json&quot;" />
+      <command value="curl -X POST &quot;http://localhost:9875/addUser&quot; \ -H &quot;Content-Type: application/json&quot; \ -d '{     &quot;firstName&quot;: &quot;John&quot;,     &quot;lastName&quot;: &quot;Doe&quot;,     &quot;email&quot;: &quot;john.doe@example.com&quot;,     &quot;phoneNumber&quot;: &quot;0796055236&quot; }'" />
+      <command value="curl -X POST &quot;http://localhost:9878/addUser&quot; \ -H &quot;Content-Type: application/json&quot; \ -d '{     &quot;firstName&quot;: &quot;John&quot;,     &quot;lastName&quot;: &quot;Doe&quot;,     &quot;email&quot;: &quot;john.doe@example.com&quot;,     &quot;phoneNumber&quot;: &quot;0796055236&quot; }'" />
+      <command value="curl -X DELETE &quot;http://localhost:9875/users/delete?id=1&quot; -H &quot;Accept: application/json&quot;" />
+      <command value="curl -X DELETE &quot;http://localhost:9878/users/delete?id=1&quot; -H &quot;Accept: application/json&quot;" />
+      <command value="curl -X GET &quot;http://localhost:9878/users/getByEmail?email=s.kurdi@outlook.sa&quot;" />
+      <command value="curl -X GET &quot;http://localhost:9306/users/getByEmail?email=s.kurdi@outlook.sa&quot;" />
+      <command value="curl -X GET http://localhost:9306/users/getByEmail?email=s.kurdi@outlook.com" />
+      <command value="curl -X POST &quot;http://localhost:9314/importxml/parsing?filePath=$(base64 -w 0 'C:\Users\SAmmar\Downloads\Customer.xml')&quot; ^      -H &quot;Content-Type: application/json&quot; ^      -H &quot;Accept: application/json&quot; " />
+      <command value="curl -X POST &quot;http://localhost:9314/importxml/parsing?filePath='C:\Users\SAmmar\Downloads\Customer.xml')      -H &quot;Content-Type: application/json&quot; ^      -H &quot;Accept: application/json&quot; " />
+      <command value="curl -X POST &quot;http://localhost:9314/importxml/parsing?filePath=PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZ...&quot; ^      -H &quot;Content-Type: application/json&quot; ^      -H &quot;Accept: application/json&quot; " />
+      <command value="curl -X POST http://localhost:9314/importxml/parsing?filePath='C:\Users\SAmmar\Downloads\Customer.xml')-H &quot;Content-Type: application/json&quot; -H &quot;Accept: application/json&quot; " />
+      <command value="curl -X POST http://localhost:9314/importxml/parsing?filePath='C:/Users/SAmmar/Downloads/Customer.xml'-H &quot;Content-Type: application/json&quot; -H &quot;Accept: application/json&quot; " />
+      <command value="curl -X POST http://localhost:9314/importxml/parsing?filePath='C:/Users/SAmmar/Downloads/Customer.xml'-H&quot;Content-Type: application/json&quot;-H&quot;Accept: application/json&quot; " />
+      <command value="curl -X POST http://localhost:9314/importxml/parsing?filePath=C:/Users/SAmmar/Downloads/Customer.xml -H&quot;Content-Type: application/json&quot; -H&quot;Accept: application/json&quot; " />
+      <command value="curl -X POST &quot;http://localhost:9314/importxml/parsing?filePath=C:/Users/SAmmar/Downloads/Customer.xml&quot; " />
+      <command value="curl -X POST &quot;http://localhost:9314/importxml/parsing?filePath=C:/Users/SAmmar/Downloads/Categories.xml&quot; " />
+      <command value="curl -X POST &quot;http://localhost:9314/importxml/parsing?filePath=C:/Users/SAmmar/Downloads/Category.xml&quot; " />
+      <command value="curl -X GET http://localhost:9306/CRUD/findByEmail?email=s.kurdi@outlook.com" />
+      <command value="curl -X POST &quot;http://localhost:9314/importxml/parsing?filePath=C:/Users/SAmmar/Downloads/Customer.xml&amp;field=Customer&quot; " />
+      <command value="curl -X POST &quot;http://localhost:9314/importxml/parsing?filePath=C:/Users/SAmmar/Downloads/Customer.xml&amp;field=customer&quot; " />
+      <command value="curl -X POST &quot;http://localhost:9314/importxml/parsing?filePath=C:/Users/SAmmar/Downloads/Product.xml&amp;field=product&quot; " />
+      <command value="curl -X POST &quot;http://localhost:9314/importxml/parsing?filePath=C:/Users/SAmmar/Downloads/Category.xml&amp;field=Category&quot; " />
+      <command value="mvn clean install" />
+      <command value="curl &quot;http://localhost:9791/test/first&quot;" />
+      <command value="curl -GET &quot;http://localhost:9791/test/first&quot;" />
+      <command value="curl -X GET &quot;http://localhost:9791/test/First&quot;" />
+      <command value="curl -X GET &quot;http://localhost:9791/departmentOperation/allDepartments&quot;" />
+      <command value="curl -X GET &quot;http://localhost:9791/departmentOperation/departmentById?id=1&quot;" />
+      <command value="curl -X GET &quot;http://localhost:9791/departmentOperation/departmentByName?name=InformationTechnology&quot;" />
+      <command value="curl -G http://localhost:9791/departmentOperation/departmentByName \      --data-urlencode &quot;name=Information Technology" />
+      <command value="curl -X GET &quot;http://localhost:9791/departmentOperation/departmentByName?name=Information_Technology&quot;" />
+      <command value="curl -X PUT &quot;http://localhost:9791/departmentOperation/updateDepartmentById?id=1&amp;name=IT&quot;" />
+      <command value="curl -X PUT &quot;http://localhost:9791/departmentOperation/deleteDepartmentById?id=2&quot;" />
+      <command value="curl -X DELETE &quot;http://localhost:9791/departmentOperation/deleteDepartmentById?id=2&quot;" />
+      <command value="curl -X POST &quot;http://localhost:9791/departmentOperation/addDepartment?id=2&amp;name=Engineering&quot;" />
+      <command value="curl -X POST &quot;http://localhost:9791/departmentOperation/addDepartment?id=3&amp;name=BIT&quot;" />
+      <command value="curl -X PUT &quot;http://localhost:9791/departmentOperation/updateDepartmentById?id=3&amp;name=Bus&quot;" />
+      <command value="curl -X GET &quot;http://localhost:9791/departmentOperation/departmentByName?name=Information Technology&quot;" />
+      <command value="curl -X DELETE &quot;http://localhost:9791/departmentOperation/deleteDepartmentById?id=3&quot;" />
+      <command value="curl -X GET &quot;http://localhost:9791/courseOperation/allCourese&quot;" />
+      <command value="curl -X GET &quot;http://localhost:9791/courseOperation/allCourses&quot;" />
+      <command value="curl -X GET &quot;http://localhost:9791/courseOperation/coursesById?name=Programming&quot;" />
+      <command value="curl -X GET &quot;http://localhost:9791/courseOperation/coursesById?name=&quot;Programming&quot;&quot;" />
+      <command value="curl -X GET &quot;http://localhost:9791/courseOperation/coursesByName?name=Programming&quot;" />
+      <command value="curl -X GET &quot;http://localhost:9791/courseOperation/coursesById?id=2&quot;" />
+      <command value="curl -X GET &quot;http://localhost:9791/courseOperation/coursesByName?name=&quot;Programming&quot;&quot;" />
+      <command value="curl -X PUT &quot;http://localhost:9791/courseOperation/coursesById?id=2&quot;" />
+      <command value="curl -X PUT &quot;http://localhost:9791/courseOperation/updateCourseById?id=2&amp;isActive=0&quot;" />
+      <command value="curl -X PUT &quot;http://localhost:9791/courseOperation/updateCourseById?id=2&amp;isActive=1&quot;" />
+      <command value="curl -X PUT &quot;http://localhost:9791/courseOperation/updateCourseById?id=2&amp;isActive=false&quot;" />
+      <command value="curl -X PUT &quot;http://localhost:9791/courseOperation/deleteCourseById?id=2&quot;" />
+      <command value="curl -X PUT &quot;http://localhost:9791/courseOperation/coursesByName?name=BI&quot;" />
+      <command value="curl -X GET &quot;http://localhost:9791/courseOperation/coursesByName?name=BI&quot;" />
+      <command value="curl -X DELETE &quot;http://localhost:9791/courseOperation/deleteCourseById?id=2&quot;" />
+      <command value="curl -X PUT &quot;http://localhost:9791/courseOperation/updateCourseById?id=2&amp;name=BI&quot;" />
+      <command value="curl -X PUT &quot;http://localhost:9791/courseOperation/updateCourseById?id=3&amp;name=BI&quot;" />
+      <command value="curl -X PUT &quot;http://localhost:9791/courseOperation/updateCourseById?id=3&amp;isActive=false&quot;" />
+      <command value="curl -X DELETE &quot;http://localhost:9791/courseOperation/deleteCourseByName?name=BI&quot;" />
+      <command value="curl -X PUT &quot;http://localhost:9791/courseOperation/updateCourseById?id=4&amp;isActive=false&quot;" />
+    </option>
+  </component>
+  <component name="RunManager">
+    <configuration name="universitySystem" type="QuarkusRunConfigurationType" factoryName="Quarkus">
+      <module name="universitySystem" />
+      <QsMavenRunConfiguration>
+        <MavenSettings>
+          <option name="myGeneralSettings" />
+          <option name="myRunnerSettings" />
+          <option name="myRunnerParameters">
+            <MavenRunnerParameters>
+              <option name="cmdOptions" />
+              <option name="profiles">
+                <set />
+              </option>
+              <option name="goals">
+                <list>
+                  <option value="quarkus:dev" />
+                </list>
+              </option>
+              <option name="multimoduleDir" />
+              <option name="pomFileName" value="pom.xml" />
+              <option name="profilesMap">
+                <map />
+              </option>
+              <option name="projectsCmdOptionValues">
+                <list />
+              </option>
+              <option name="resolveToWorkspace" value="false" />
+              <option name="workingDirPath" value="$PROJECT_DIR$" />
+            </MavenRunnerParameters>
+          </option>
+        </MavenSettings>
+        <targetMavenLocalRepo />
+        <emulateTerminal>false</emulateTerminal>
+        <profile>dev</profile>
+      </QsMavenRunConfiguration>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-jdk-9823dce3aa75-125ca727e0f0-intellij.indexing.shared.core-IU-243.24978.46" />
+        <option value="bundled-js-predefined-d6986cc7102b-76f8388c3a79-JavaScript-IU-243.24978.46" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="eef4a238-3c06-4f2b-9d6e-8e7aab97a2fd" name="Changes" comment="" />
+      <created>1741889095595</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1741889095595</updated>
+      <workItem from="1741889096945" duration="16383000" />
+      <workItem from="1742176133869" duration="9573000" />
+      <workItem from="1742319707291" duration="40000" />
+      <workItem from="1742319773147" duration="106901000" />
+      <workItem from="1744001985635" duration="42603000" />
+      <workItem from="1744225598307" duration="303000" />
+      <workItem from="1744226271295" duration="8218000" />
+      <workItem from="1744459879801" duration="12175000" />
+      <workItem from="1744631600415" duration="21768000" />
+      <workItem from="1744723565791" duration="47508000" />
+      <workItem from="1745088150559" duration="1274000" />
+      <workItem from="1745144235309" duration="316000" />
+      <workItem from="1745144863170" duration="602000" />
+      <workItem from="1745145906697" duration="625000" />
+      <workItem from="1745216640960" duration="484000" />
+      <workItem from="1745217335302" duration="837000" />
+      <workItem from="1745222135458" duration="594000" />
+      <workItem from="1745235978425" duration="594000" />
+      <workItem from="1745239127894" duration="594000" />
+      <workItem from="1745240500504" duration="594000" />
+      <workItem from="1745243371907" duration="1194000" />
+      <workItem from="1745257443695" duration="594000" />
+      <workItem from="1745275743843" duration="595000" />
+      <workItem from="1745332396437" duration="2482000" />
+      <workItem from="1745410306983" duration="2595000" />
+      <workItem from="1746977639195" duration="11805000" />
+      <workItem from="1747203064512" duration="11262000" />
+      <workItem from="1747562780661" duration="2991000" />
+      <workItem from="1747729378450" duration="2998000" />
+    </task>
+    <task id="LOCAL-00001" summary="Last Update">
+      <option name="closed" value="true" />
+      <created>1744812499135</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1744812499135</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="Last Update" />
+    <option name="LAST_COMMIT_MESSAGE" value="Last Update" />
+  </component>
+</project>
