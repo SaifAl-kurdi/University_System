@@ -62,7 +62,6 @@ public class CourseController {
                                           @QueryParam("numberOfHours") int numberOfHours, @QueryParam("departmentId") int departmentId) {
         return courseService.updateCourseById(id, name, isActive, numberOfHours, departmentId);
     }
-
     @DELETE
     @Path("deleteCourseById")
     @Produces(MediaType.APPLICATION_JSON)
